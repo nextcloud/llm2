@@ -6,19 +6,23 @@ import typing
 from contextlib import asynccontextmanager
 from time import perf_counter
 
+import pydantic
 from fastapi import Depends, FastAPI, responses
 from huggingface_hub import snapshot_download
+from nc_py_api import AsyncNextcloudApp, NextcloudApp
+from nc_py_api.ex_app import LogLvl, anc_app, persistent_storage, run_app, set_handlers
 from transformers import pipeline
-
-from nc_py_api import NextcloudApp, AsyncNextcloudApp
-from nc_py_api.ex_app import anc_app, persistent_storage, run_app, set_handlers, LogLvl
 
 MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    set_handlers(APP, enabled_handler, models_to_fetch={MODEL_NAME: {"ignore_patterns": ["*.bin", "*onnx*"]}})
+    set_handlers(
+        APP,
+        enabled_handler,
+        models_to_fetch={MODEL_NAME: {"ignore_patterns": ["*.bin", "*onnx*"]}},
+    )
     t = BackgroundProcessTask()
     t.start()
     yield
@@ -65,10 +69,18 @@ class BackgroundProcessTask(threading.Thread):
 
                     print("generating reply")
                     time_start = perf_counter()
-                    r = PIPE(prompt, max_new_tokens=192, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)  # mypy
+                    r = PIPE(
+                        prompt,
+                        max_new_tokens=192,
+                        do_sample=True,
+                        temperature=0.7,
+                        top_k=50,
+                        top_p=0.95,
+                    )  # mypy
                     print(f"reply generated: {perf_counter() - time_start}s")
                     NextcloudApp().providers.text_processing.report_result(
-                        task["id"], str(r[0]["generated_text"]).split(sep="<|assistant|>", maxsplit=1)[-1].strip()
+                        task["id"],
+                        str(r[0]["generated_text"]).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
                     )
                 except Exception as e:  # noqa
                     print(str(e))
@@ -81,14 +93,18 @@ class BackgroundProcessTask(threading.Thread):
                 PIPE = None
 
 
-@APP.get("/tiny_llama")
+class Input(pydantic.BaseModel):
+    prompt: str
+    task_id: int
+
+
+@APP.post("/tiny_llama")
 async def tiny_llama(
     _nc: typing.Annotated[AsyncNextcloudApp, Depends(anc_app)],
-    prompt: str,
-    task_id: int,
+    req: Input,
 ):
     try:
-        TASK_LIST.put({"prompt": prompt, "id": task_id}, block=False)
+        TASK_LIST.put({"prompt": req.prompt, "id": req.task_id}, block=False)
     except queue.Full:
         return responses.JSONResponse(content={"error": "task queue is full"}, status_code=429)
     return responses.Response()
