@@ -54,7 +54,7 @@ class BackgroundProcessTask(threading.Thread):
                     messages = [
                         {
                             "role": "system",
-                            "content": "perform a free prompt",
+                            "content": "story about",
                         },
                         {"role": "user", "content": task["prompt"]},
                     ]
@@ -68,7 +68,7 @@ class BackgroundProcessTask(threading.Thread):
                     r = PIPE(prompt, max_new_tokens=192, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)  # mypy
                     print(f"reply generated: {perf_counter() - time_start}s")
                     NextcloudApp().providers.text_processing.report_result(
-                        task["id"], str(r[0]["generated_text"]).split(sep="<|assistant|>", maxsplit=1)[-1]
+                        task["id"], str(r[0]["generated_text"]).split(sep="<|assistant|>", maxsplit=1)[-1].strip()
                     )
                 except Exception as e:  # noqa
                     print(str(e))
