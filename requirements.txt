@@ -1,0 +1,7 @@
+nc_py_api[app]>=0.8.0
+transformers>=4.36.1
+accelerate
+huggingface_hub
+torch
+torchvision
+torchaudio

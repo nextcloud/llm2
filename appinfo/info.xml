@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<info>
+	<id>free_prompt_provider</id>
+	<name>FreePrompt Provider</name>
+	<summary>Small but capable Free Prompt text processing provider</summary>
+	<description>
+	<![CDATA[
+**Requires [`AppAPI`](https://github.com/cloud-py-api/app_api) to work.**
+
+FreePrompt provider based on [`TinyLlama-1.1B`](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0) for Nextcloud version **29 and higher**.
+
+*The model used is quite miniature, but very smart.*
+	]]></description>
+	<version>1.0.0</version>
+	<licence>MIT</licence>
+	<author mail="andrey18106x@gmail.com" homepage="https://github.com/andrey18106">Andrey Borysenko</author>
+	<author mail="bigcat88@icloud.com" homepage="https://github.com/bigcat88">Alexander Piskun</author>
+	<namespace>PyAppV2_free_prompt_provider</namespace>
+	<category>tools</category>
+	<website>https://github.com/cloud-py-api/free_prompt_provider</website>
+	<bugs>https://github.com/cloud-py-api/free_prompt_provider/issues</bugs>
+	<repository type="git">https://github.com/cloud-py-api/free_prompt_provider</repository>
+	<dependencies>
+		<nextcloud min-version="29" max-version="30"/>
+	</dependencies>
+	<external-app>
+		<docker-install>
+			<registry>ghcr.io</registry>
+			<image>cloud-py-api/free_prompt_provider</image>
+			<image-tag>latest</image-tag>
+		</docker-install>
+		<scopes>
+			<required>
+				<value>AI_PROVIDERS</value>
+			</required>
+			<optional>
+			</optional>
+		</scopes>
+		<protocol>http</protocol>
+		<system>false</system>
+	</external-app>
+</info>
