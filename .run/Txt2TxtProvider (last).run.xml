@@ -11,10 +11,10 @@
       <env name="APP_PORT" value="9081" />
       <env name="APP_SECRET" value="12345" />
       <env name="APP_VERSION" value="1.0.0" />
-      <env name="NEXTCLOUD_URL" value="http://nextcloud.local" />
+      <env name="NEXTCLOUD_URL" value="http://localhost:8080" />
     </envs>
     <option name="SDK_HOME" value="" />
-    <option name="SDK_NAME" value="Python 3.12 (free_prompt_provider)" />
+    <option name="SDK_NAME" value="Python 3.10 (nc-llm-python)" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/lib" />
     <option name="IS_MODULE_SDK" value="false" />
     <option name="ADD_CONTENT_ROOTS" value="true" />

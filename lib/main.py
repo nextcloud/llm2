@@ -1,5 +1,3 @@
-"""Use the simple but clever model to test text recognition."""
-
 import queue
 import threading
 import typing
@@ -8,12 +6,10 @@ from time import perf_counter
 
 import pydantic
 from fastapi import Depends, FastAPI, responses
-from huggingface_hub import snapshot_download
 from nc_py_api import AsyncNextcloudApp, NextcloudApp
 from nc_py_api.ex_app import LogLvl, anc_app, persistent_storage, run_app, set_handlers
-from transformers import pipeline
 
-MODEL_NAME = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+from chains import chains
 
 
 @asynccontextmanager
@@ -21,7 +17,6 @@ async def lifespan(_app: FastAPI):
     set_handlers(
         APP,
         enabled_handler,
-        models_to_fetch={MODEL_NAME: {"ignore_patterns": ["*.bin", "*onnx*"]}},
     )
     t = BackgroundProcessTask()
     t.start()
@@ -30,67 +25,27 @@ async def lifespan(_app: FastAPI):
 
 APP = FastAPI(lifespan=lifespan)
 TASK_LIST: queue.Queue = queue.Queue(maxsize=100)
-PIPE: typing.Any = None
 
 
 class BackgroundProcessTask(threading.Thread):
     def run(self, *args, **kwargs):  # pylint: disable=unused-argument
-        global PIPE
-
         while True:
+            task = TASK_LIST.get(block=True, timeout=60 * 60)
             try:
-                task = TASK_LIST.get(block=True, timeout=60 * 60)
-                try:
-                    if PIPE is None:
-                        print("loading model")
-                        time_start = perf_counter()
-                        PIPE = pipeline(
-                            "text-generation",
-                            model=snapshot_download(
-                                MODEL_NAME,
-                                local_files_only=True,
-                                cache_dir=persistent_storage(),
-                            ),
-                            device_map="auto",
-                        )
-                        print(f"model loaded: {perf_counter() - time_start}s")
-
-                    messages = [
-                        {
-                            "role": "system",
-                            "content": "story about",
-                        },
-                        {"role": "user", "content": task["prompt"]},
-                    ]
-                    print("tokenizing prompt")
-                    time_start = perf_counter()
-                    prompt = PIPE.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-                    print(f"prompt tokenized: {perf_counter() - time_start}s")
-
-                    print("generating reply")
-                    time_start = perf_counter()
-                    r = PIPE(
-                        prompt,
-                        max_new_tokens=192,
-                        do_sample=True,
-                        temperature=0.7,
-                        top_k=50,
-                        top_p=0.95,
-                    )  # mypy
-                    print(f"reply generated: {perf_counter() - time_start}s")
-                    NextcloudApp().providers.text_processing.report_result(
-                        task["id"],
-                        str(r[0]["generated_text"]).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
-                    )
-                except Exception as e:  # noqa
-                    print(str(e))
-                    nc = NextcloudApp()
-                    nc.log(LogLvl.ERROR, str(e))
-                    nc.providers.text_processing.report_result(task["id"], error=str(e))
-            except queue.Empty:
-                if PIPE:
-                    print("offloading model")
-                PIPE = None
+                chain = chains.get(task.chain)
+                print("generating reply")
+                time_start = perf_counter()
+                result = chain.run(task.prompt)
+                print(f"reply generated: {perf_counter() - time_start}s")
+                NextcloudApp().providers.text_processing.report_result(
+                    task["id"],
+                    str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
+                )
+            except Exception as e:  # noqa
+                print(str(e))
+                nc = NextcloudApp()
+                nc.log(LogLvl.ERROR, str(e))
+                nc.providers.text_processing.report_result(task["id"], error=str(e))
 
 
 class Input(pydantic.BaseModel):
@@ -98,13 +53,14 @@ class Input(pydantic.BaseModel):
     task_id: int
 
 
-@APP.post("/tiny_llama")
+@APP.post("/chain/{chain_name}")
 async def tiny_llama(
-    _nc: typing.Annotated[AsyncNextcloudApp, Depends(anc_app)],
-    req: Input,
+        _nc: typing.Annotated[AsyncNextcloudApp, Depends(anc_app)],
+        req: Input,
+        chain_name=None,
 ):
     try:
-        TASK_LIST.put({"prompt": req.prompt, "id": req.task_id}, block=False)
+        TASK_LIST.put({"prompt": req.prompt, "id": req.task_id, "chain": chain_name}, block=False)
     except queue.Full:
         return responses.JSONResponse(content={"error": "task queue is full"}, status_code=429)
     return responses.Response()
@@ -113,9 +69,13 @@ async def tiny_llama(
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     print(f"enabled={enabled}")
     if enabled is True:
-        await nc.providers.text_processing.register("TinyLlama", "TinyLlama", "/tiny_llama", "free_prompt")
+        for chain_name, chain in chains.items():
+            (model, task) = chain_name.split(':', 2)
+            await nc.providers.text_processing.register(model, model, "/chain/" + chain_name, task)
     else:
-        await nc.providers.text_processing.unregister("TinyLlama")
+        for chain_name, chain in chains.items():
+            (model, task) = chain_name.split(':', 2)
+            await nc.providers.text_processing.unregister(model)
     return ""
 
 
