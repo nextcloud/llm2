@@ -23,6 +23,13 @@ build-push:
 	docker login ghcr.io
 	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ghcr.io/cloud-py-api/free_prompt_provider:latest .
 
+.PHONY: download-models
+download-models:
+	cd models
+	wget https://download.nextcloud.com/server/apps/llm/leo-hessianai-13B-chat-bilingual-GGUF/leo-hessianai-13b-chat-bilingual.Q4_K_M.gguf
+	wget https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q5_K_M.gguf
+	wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf
+
 .PHONY: deploy
 deploy:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister free_prompt_provider --silent || true
