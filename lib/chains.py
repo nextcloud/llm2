@@ -1,5 +1,4 @@
-"""
-Registers all chains based on the models/ directory contents
+"""Registers all chains based on the models/ directory contents
 """
 
 import os
@@ -34,9 +33,9 @@ for file in os.scandir(dir_path + "/../models/"):
 
 
 def generate_chains(model_name, model):
-    chains[model_name + ":summarize"] = lambda: SummarizeChain(llm=model())
-    chains[model_name + ":simplify"] = lambda: SimplifyChain(llm=model())
-    chains[model_name + ":formalize"] = lambda: FormalizeChain(llm=model())
+    chains[model_name + ":summary"] = lambda: SummarizeChain(llm=model())
+    #chains[model_name + ":simplify"] = lambda: SimplifyChain(llm=model())
+    #chains[model_name + ":formalize"] = lambda: FormalizeChain(llm=model())
     chains[model_name + ":headline"] = lambda: HeadlineChain(llm=model())
     chains[model_name + ":topics"] = lambda: TopicsChain(llm=model())
     chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm=model())

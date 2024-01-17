@@ -1,5 +1,4 @@
-"""
-Tha main module of the llm2 app
+"""Tha main module of the llm2 app
 """
 
 import queue
@@ -12,7 +11,7 @@ import pydantic
 from chains import chains
 from fastapi import Depends, FastAPI, responses
 from nc_py_api import AsyncNextcloudApp, NextcloudApp
-from nc_py_api.ex_app import LogLvl, anc_app
+from nc_py_api.ex_app import LogLvl, anc_app, run_app, set_handlers
 
 
 @asynccontextmanager
@@ -85,7 +84,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
         for chain_name, _ in chains.items():
             (model, task) = chain_name.split(":", 2)
             await nc.providers.text_processing.register(
-                model, "Local Large language Model: " + model, "/chain/" + chain_name, task
+                "llm2:"+chain_name, "Local Large language Model: " + model, "/chain/" + chain_name, task
             )
     else:
         for chain_name, chain in chains.items():

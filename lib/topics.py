@@ -1,5 +1,4 @@
-"""
-A chain that extracts topcis from a text
+"""A chain that extracts topcis from a text
 """
 
 from typing import Any, Optional
@@ -13,8 +12,7 @@ from pydantic import Extra
 
 
 class TopicsChain(Chain):
-    """
-    A topics chain
+    """A topics chain
     """
 
     prompt: BasePromptTemplate = PromptTemplate(

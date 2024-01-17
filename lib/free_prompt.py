@@ -1,5 +1,4 @@
-"""
-A free rpompt chain
+"""A free rpompt chain
 """
 
 from typing import Any, Optional
@@ -12,8 +11,7 @@ from pydantic import Extra
 
 
 class FreePromptChain(Chain):
-    """
-    A free prompt chain
+    """A free prompt chain
     """
 
     llm: BaseLanguageModel

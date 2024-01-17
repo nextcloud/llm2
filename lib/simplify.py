@@ -1,5 +1,4 @@
-"""
-A simplify chain
+"""A simplify chain
 """
 
 from typing import Any, Optional
@@ -14,8 +13,7 @@ from pydantic import Extra
 
 
 class SimplifyChain(Chain):
-    """
-    A summarization chain
+    """A summarization chain
     """
 
     prompt: BasePromptTemplate = PromptTemplate(

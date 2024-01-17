@@ -1,5 +1,4 @@
-"""
-A chain to generate a headline for a text
+"""A chain to generate a headline for a text
 """
 
 from typing import Any, Optional
@@ -13,8 +12,7 @@ from pydantic import Extra
 
 
 class HeadlineChain(Chain):
-    """
-    A headline chain
+    """A headline chain
     """
 
     prompt: BasePromptTemplate = PromptTemplate(

@@ -1,5 +1,4 @@
-"""
-A langchain chain to formalize text
+"""A langchain chain to formalize text
 """
 
 from typing import Any, Optional
@@ -14,8 +13,7 @@ from pydantic import Extra
 
 
 class FormalizeChain(Chain):
-    """
-    A formalize chain
+    """A formalize chain
     """
 
     prompt: BasePromptTemplate = PromptTemplate(

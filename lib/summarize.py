@@ -1,5 +1,4 @@
-"""
-A recursive summarize chain
+"""A recursive summarize chain
 """
 
 from typing import Any, Optional
@@ -14,8 +13,7 @@ from pydantic import Extra
 
 
 class SummarizeChain(Chain):
-    """
-    A summarization chain
+    """A summarization chain
     """
 
     prompt: BasePromptTemplate = PromptTemplate(
