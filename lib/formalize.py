@@ -1,10 +1,15 @@
-from typing import List, Dict, Any, Optional
+"""
+A langchain chain to formalize text
+"""
+
+from typing import Any, Optional
+
 from langchain.base_language import BaseLanguageModel
-from langchain.schema.prompt_template import BasePromptTemplate
-from langchain.prompts import PromptTemplate
 from langchain.callbacks.manager import CallbackManagerForChainRun
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains.base import Chain
+from langchain.prompts import PromptTemplate
+from langchain.schema.prompt_template import BasePromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
 from pydantic import Extra
 
 
@@ -21,7 +26,7 @@ class FormalizeChain(Chain):
         {text}
         "
         Write the above text again, rephrase it to use only formal language and be very polite.
-        """
+        """,
     )
 
     """Prompt object to use."""
@@ -35,7 +40,7 @@ class FormalizeChain(Chain):
         arbitrary_types_allowed = True
 
     @property
-    def input_keys(self) -> List[str]:
+    def input_keys(self) -> list[str]:
         """Will be whatever keys the prompt expects.
 
         :meta private:
@@ -43,7 +48,7 @@ class FormalizeChain(Chain):
         return [self.output_key]
 
     @property
-    def output_keys(self) -> List[str]:
+    def output_keys(self) -> list[str]:
         """Will always return text key.
 
         :meta private:
@@ -51,17 +56,18 @@ class FormalizeChain(Chain):
         return [self.output_key]
 
     def _call(
-            self,
-            inputs: Dict[str, Any],
-            run_manager: Optional[CallbackManagerForChainRun] = None,
-    ) -> Dict[str, str]:
+        self,
+        inputs: dict[str, Any],
+        run_manager: Optional[CallbackManagerForChainRun] = None,
+    ) -> dict[str, str]:
         text_splitter = CharacterTextSplitter(
-            separator='\n\n|\\.|\\?|\\!', chunk_size=1000, chunk_overlap=0, keep_separator=True)
-        texts = text_splitter.split_text(inputs['text'])
+            separator="\n\n|\\.|\\?|\\!", chunk_size=1000, chunk_overlap=0, keep_separator=True
+        )
+        texts = text_splitter.split_text(inputs["text"])
         out = self.llm.generate_prompt([self.prompt.format_prompt(text=t) for t in texts])
         texts = [t[0].text for t in out.generations]
 
-        return {self.output_key: '\n\n'.join(texts)}
+        return {self.output_key: "\n\n".join(texts)}
 
     @property
     def _chain_type(self) -> str:

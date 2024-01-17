@@ -11,7 +11,7 @@ Uses [TinyLlama-1.1B](https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v1.0)
 > Models remain in memory after a request, for faster processing of subsequent requests.
 >
 > Memory is freed after an hour of inactivity.
-> 
+>
 
 > [!IMPORTANT]
 > Only English language is supported

@@ -1,3 +1,7 @@
+"""
+Tha main module of the llm2 app
+"""
+
 import queue
 import threading
 import typing
@@ -5,11 +9,10 @@ from contextlib import asynccontextmanager
 from time import perf_counter
 
 import pydantic
+from chains import chains
 from fastapi import Depends, FastAPI, responses
 from nc_py_api import AsyncNextcloudApp, NextcloudApp
-from nc_py_api.ex_app import LogLvl, anc_app, persistent_storage, run_app, set_handlers
-
-from chains import chains
+from nc_py_api.ex_app import LogLvl, anc_app
 
 
 @asynccontextmanager
@@ -37,8 +40,7 @@ class BackgroundProcessTask(threading.Thread):
                 chain_load = chains.get(chain_name)
                 if chain_load is None:
                     NextcloudApp().providers.text_processing.report_result(
-                        task["id"],
-                        error='Requested model is not available'
+                        task["id"], error="Requested model is not available"
                     )
                     continue
                 chain = chain_load()
@@ -66,9 +68,9 @@ class Input(pydantic.BaseModel):
 
 @APP.post("/chain/{chain_name}")
 async def tiny_llama(
-        _nc: typing.Annotated[AsyncNextcloudApp, Depends(anc_app)],
-        req: Input,
-        chain_name=None,
+    _nc: typing.Annotated[AsyncNextcloudApp, Depends(anc_app)],
+    req: Input,
+    chain_name=None,
 ):
     try:
         TASK_LIST.put({"prompt": req.prompt, "id": req.task_id, "chain": chain_name}, block=False)
@@ -80,12 +82,14 @@ async def tiny_llama(
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     print(f"enabled={enabled}")
     if enabled is True:
-        for chain_name, chain in chains.items():
-            (model, task) = chain_name.split(':', 2)
-            await nc.providers.text_processing.register(model, "Local Large language Model: " + model, "/chain/" + chain_name, task)
+        for chain_name, _ in chains.items():
+            (model, task) = chain_name.split(":", 2)
+            await nc.providers.text_processing.register(
+                model, "Local Large language Model: " + model, "/chain/" + chain_name, task
+            )
     else:
         for chain_name, chain in chains.items():
-            (model, task) = chain_name.split(':', 2)
+            (model, task) = chain_name.split(":", 2)
             await nc.providers.text_processing.unregister(model)
     return ""
 
