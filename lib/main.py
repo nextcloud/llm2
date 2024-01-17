@@ -32,11 +32,22 @@ class BackgroundProcessTask(threading.Thread):
         while True:
             task = TASK_LIST.get(block=True, timeout=60 * 60)
             try:
-                chain = chains.get(task.chain)
+                chain_name = task.get("chain")
+                print(f"chain: {chain_name}")
+                chain_load = chains.get(chain_name)
+                if chain_load is None:
+                    NextcloudApp().providers.text_processing.report_result(
+                        task["id"],
+                        error='Requested model is not available'
+                    )
+                    continue
+                chain = chain_load()
                 print("generating reply")
                 time_start = perf_counter()
-                result = chain.run(task.prompt)
+                result = chain.invoke(task.get("prompt")).get("text")
+                del chain
                 print(f"reply generated: {perf_counter() - time_start}s")
+                print(result)
                 NextcloudApp().providers.text_processing.report_result(
                     task["id"],
                     str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),

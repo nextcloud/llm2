@@ -6,20 +6,37 @@ from topics import TopicsChain
 from free_prompt import FreePromptChain
 from langchain_community.llms import GPT4All
 import os
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-models = {
-    #'llama2': GPT4All(model=dir_path + '/../models/llama-2-7b-chat.Q4_K_M.gguf'),
-    'tiny_llama': GPT4All(model=dir_path + '/../models/tinyllama-1.1b-chat-v1.0.Q5_K_M.gguf'),
-   # 'leo_hessianai': GPT4All(model=dir_path + '/../models/leo-hessianai-13b-chat-bilingual.Q4_K_M.gguf')
-}
+
+def generate_llm(path):
+    try:
+        return GPT4All(model=path, device='gpu')
+    except:
+        return GPT4All(model=path, device='cpu')
+
+
+def generate_llm_generator(path):
+    models[file.name.split('.gguf')[0]] = lambda: generate_llm(path)
+
+
+models = {}
+
+for file in os.scandir(dir_path + '/../models/'):
+    if file.name.endswith('.gguf'):
+        generate_llm_generator(file.path)
+
+
+
+def generate_chains(model_name, model):
+    chains[model_name + ':summarize'] = lambda: SummarizeChain(llm=model())
+    chains[model_name + ':simplify'] = lambda: SimplifyChain(llm=model())
+    chains[model_name + ':formalize'] = lambda: FormalizeChain(llm=model())
+    chains[model_name + ':headline'] = lambda: HeadlineChain(llm=model())
+    chains[model_name + ':topics'] = lambda: TopicsChain(llm=model())
+    chains[model_name + ':free_prompt'] = lambda: FreePromptChain(llm=model())
+
 
 chains = {}
 for model_name, model in models.items():
-    chains[model_name+':summarize'] = SummarizeChain(llm=model)
-    chains[model_name+':simplify'] = SimplifyChain(llm=model)
-    chains[model_name+':formalize'] = FormalizeChain(llm=model)
-    chains[model_name+':headline'] = HeadlineChain(llm=model)
-    chains[model_name+':topics'] = TopicsChain(llm=model)
-    chains[model_name+':free_prompt'] = FreePromptChain(llm=model)
+    generate_chains(model_name, model)

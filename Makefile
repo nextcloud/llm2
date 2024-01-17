@@ -21,30 +21,30 @@ help:
 .PHONY: build-push
 build-push:
 	docker login ghcr.io
-	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ghcr.io/cloud-py-api/free_prompt_provider:latest .
+	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag ghcr.io/cloud-py-api/llm2:latest .
 
 .PHONY: download-models
 download-models:
 	cd models
 	wget https://download.nextcloud.com/server/apps/llm/leo-hessianai-13B-chat-bilingual-GGUF/leo-hessianai-13b-chat-bilingual.Q4_K_M.gguf
-	wget https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q5_K_M.gguf
-	wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf
+	wget https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_0.gguf
+	wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_0.gguf
 
 .PHONY: deploy
 deploy:
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister free_prompt_provider --silent || true
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:deploy free_prompt_provider docker_dev \
-		--info-xml https://raw.githubusercontent.com/cloud-py-api/free_prompt_provider/appinfo/info.xml
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:deploy llm2 docker_dev \
+		--info-xml https://raw.githubusercontent.com/cloud-py-api/llm2/appinfo/info.xml
 
 .PHONY: run
 run:
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister free_prompt_provider --silent || true
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register free_prompt_provider docker_dev --force-scopes \
-		--info-xml https://raw.githubusercontent.com/cloud-py-api/free_prompt_provider/appinfo/info.xml
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 docker_dev --force-scopes \
+		--info-xml https://raw.githubusercontent.com/cloud-py-api/llm2/appinfo/info.xml
 
 .PHONY: register
 register:
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister free_prompt_provider --silent || true
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register free_prompt_provider manual_install --json-info \
-  "{\"appid\":\"free_prompt_provider\",\"name\":\"FreePrompt Provider\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"host.docker.internal\",\"port\":9081,\"scopes\":{\"required\":[\"AI_PROVIDERS\"],\"optional\":[]},\"protocol\":\"http\",\"system_app\":0}" \
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 manual_install --json-info \
+  "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"host.docker.internal\",\"port\":9081,\"scopes\":{\"required\":[\"AI_PROVIDERS\"],\"optional\":[]},\"protocol\":\"http\",\"system_app\":0}" \
   --force-scopes --wait-finish
