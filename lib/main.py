@@ -82,7 +82,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     if enabled is True:
         for chain_name, chain in chains.items():
             (model, task) = chain_name.split(':', 2)
-            await nc.providers.text_processing.register(model, model, "/chain/" + chain_name, task)
+            await nc.providers.text_processing.register(model, "Local Large language Model: " + model, "/chain/" + chain_name, task)
     else:
         for chain_name, chain in chains.items():
             (model, task) = chain_name.split(':', 2)
