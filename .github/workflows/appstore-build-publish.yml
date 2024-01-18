@@ -92,6 +92,11 @@ jobs:
           cd ${{ env.APP_NAME }}
           npm ci
           npm run build
+      
+      - name: Download files
+        run: |
+          cd ${{ env.APP_NAME }}
+          make download-models
 
       - name: Check Krankerl config
         id: krankerl
@@ -110,7 +115,7 @@ jobs:
         run: |
           cd ${{ env.APP_NAME }}
           krankerl package
-
+ 
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }} with makefile
         if: steps.krankerl.outputs.files_exists != 'true'
         run: |
