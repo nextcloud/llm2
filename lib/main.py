@@ -32,7 +32,7 @@ TASK_LIST: queue.Queue = queue.Queue(maxsize=100)
 class BackgroundProcessTask(threading.Thread):
     def run(self, *args, **kwargs):  # pylint: disable=unused-argument
         while True:
-            task = TASK_LIST.get(block=True, timeout=60 * 60)
+            task = TASK_LIST.get(block=True)
             try:
                 chain_name = task.get("chain")
                 print(f"chain: {chain_name}")
