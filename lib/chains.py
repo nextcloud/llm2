@@ -16,9 +16,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def generate_llm(path):
     try:
-        return GPT4All(model=path, device="gpu")
+        return GPT4All(model=path, device="gpu", max_tokens=4096)
     except:
-        return GPT4All(model=path, device="cpu")
+        return GPT4All(model=path, device="cpu", max_tokens=4096)
 
 
 def generate_llm_generator(path):
