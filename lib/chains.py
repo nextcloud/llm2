@@ -18,6 +18,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
 
 def get_model_config(file_name):
+    file_name = file_name.split('.gguf')[0]
     if os.path.exists(os.path.join(models_folder_path, file_name + ".json")):
         model_config_path = os.path.join(models_folder_path, file_name + ".json")
         with open(model_config_path, "r") as f:
