@@ -8,14 +8,15 @@ from langchain.callbacks.manager import CallbackManagerForChainRun
 from langchain.chains.base import Chain
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
-from pydantic import Extra
+from langchain.chains import LLMChain
 
 
 class HeadlineChain(Chain):
-    """A headline chain
     """
-
-    prompt: BasePromptTemplate = PromptTemplate(
+    A headline chain
+    """
+    system_prompt = "You're an AI assistant tasked with finding a headline for the text given to you by the user."
+    user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
         Find a headline for the following text
@@ -23,17 +24,18 @@ class HeadlineChain(Chain):
         {text}
         "
         Write a single headline for the above text in one sentence
-        """,
+        """
     )
 
+
     """Prompt object to use."""
-    llm: BaseLanguageModel
+    llm_chain: LLMChain
     output_key: str = "text"  #: :meta private:
 
     class Config:
         """Configuration for this pydantic object."""
 
-        extra = Extra.forbid
+        extra = 'forbid'
         arbitrary_types_allowed = True
 
     @property
@@ -53,14 +55,17 @@ class HeadlineChain(Chain):
         return [self.output_key]
 
     def _call(
-        self,
-        inputs: dict[str, Any],
-        run_manager: Optional[CallbackManagerForChainRun] = None,
+            self,
+            inputs: dict[str, Any],
+            run_manager: Optional[CallbackManagerForChainRun] = None,
     ) -> dict[str, str]:
-        out = self.llm.generate_prompt([self.prompt.format_prompt(text=inputs["text"])])
-        text = out.generations[0][0].text
-
-        return {self.output_key: text}
+        
+        if not {"user_prompt", "system_prompt"} == set(self.llm_chain.input_keys):
+            raise ValueError("llm_chain must have input_keys ['user_prompt', 'system_prompt']")
+        if not self.llm_chain.output_keys == [self.output_key]:
+            raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
+        
+        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['text']), "system_prompt": self.system_prompt})
 
     @property
     def _chain_type(self) -> str:
