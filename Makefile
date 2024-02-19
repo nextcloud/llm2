@@ -46,5 +46,5 @@ run:
 register:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 manual_install --json-info \
-  "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"host.docker.internal\",\"port\":9081,\"scopes\":{\"required\":[\"AI_PROVIDERS\"],\"optional\":[]},\"protocol\":\"http\",\"system_app\":0}" \
+  "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"port\":9081,\"scopes\":[\"AI_PROVIDERS\"],\"system_app\":0}" \
   --force-scopes --wait-finish

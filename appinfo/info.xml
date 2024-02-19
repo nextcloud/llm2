@@ -26,13 +26,8 @@
 			<image-tag>latest</image-tag>
 		</docker-install>
 		<scopes>
-			<required>
-				<value>AI_PROVIDERS</value>
-			</required>
-			<optional>
-			</optional>
+			<value>AI_PROVIDERS</value>
 		</scopes>
-		<protocol>http</protocol>
 		<system>false</system>
 	</external-app>
 </info>
