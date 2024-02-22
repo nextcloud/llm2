@@ -20,7 +20,7 @@ vendor
 .php-cs-fixer.cache
 .phpunit.result.cache
 
-/models/
+/models/*.gguf
 /out
 /dev/
 local
