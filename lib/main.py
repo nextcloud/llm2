@@ -1,6 +1,6 @@
 """Tha main module of the llm2 app
 """
-
+import os
 import queue
 import threading
 import typing
@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, responses
 from nc_py_api import AsyncNextcloudApp, NextcloudApp
 from nc_py_api.ex_app import LogLvl, anc_app, run_app, set_handlers
 
+os.environ["APP_PERSISTENT_STORAGE"] = "/tmp/"
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -43,18 +44,18 @@ class BackgroundProcessTask(threading.Thread):
                     )
                     continue
                 chain = chain_load()
-                print("generating reply")
+                print("\033[1;46m\033[1;37mGenerating reply\033[0m")
                 time_start = perf_counter()
                 result = chain.invoke(task.get("prompt")).get("text")
                 del chain
-                print(f"reply generated: {perf_counter() - time_start}s")
                 print(result)
+                print(f"\033[1;46m\033[1;37mReply generated:\033[0m\033[1;43m\033[1;37m {round(float(perf_counter() - time_start), 2)}s\033[0m")
                 NextcloudApp().providers.text_processing.report_result(
                     task["id"],
                     str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
                 )
             except Exception as e:  # noqa
-                print(str(e))
+                print(f"\033[1;41m\033[1;37mError:\033[0m {e}")
                 nc = NextcloudApp()
                 nc.log(LogLvl.ERROR, str(e))
                 nc.providers.text_processing.report_result(task["id"], error=str(e))
@@ -77,21 +78,35 @@ async def tiny_llama(
         return responses.JSONResponse(content={"error": "task queue is full"}, status_code=429)
     return responses.Response()
 
-
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     print(f"enabled={enabled}")
+    print("app_cfg", nc.app_cfg, flush=True)
+
     if enabled is True:
         for chain_name, _ in chains.items():
             (model, task) = chain_name.split(":", 2)
-            await nc.providers.text_processing.register(
-                "llm2:"+chain_name, "Local Large language Model: " + model, "/chain/" + chain_name, task
-            )
+            try:
+                await nc.providers.text_processing.register(
+                    "llm2:"+chain_name, "Local Large language Model: " + model, "/chain/" + chain_name, task
+                )
+                print(f"\033[1;32mEnabling\033[1;37m {model} - {task}\033[0m", flush=True)
+            except Exception as e:
+                print(f"\033[1;31mFailed enabling\033[0m", f"\033[0;31m{model} - {task}\033[0m", f"\n\033[0;31mError:\033[0m", f"{e}\n", flush=True)
+ 
+
     else:
         for chain_name, chain in chains.items():
             (model, task) = chain_name.split(":", 2)
+            print(f"\033[1;33mDisabling\033[1;37m {model} - {task}\033[0m", flush=True)
             await nc.providers.text_processing.unregister(model)
     return ""
 
-
 if __name__ == "__main__":
-    run_app("main:APP", log_level="trace")
+    # print(os.environ["APP_HOST"], flush=True)
+    # print(os.environ["APP_ID"], flush=True)
+    # print(os.environ["APP_PORT"], flush=True)
+    # print(os.environ["APP_SECRET"], flush=True)
+    # print(os.environ["APP_VERSION"], flush=True)
+    # print(os.environ["NEXTCLOUD_URL"], flush=True)
+    # print(os.environ["APP_PERSISTENT_STORAGE"], flush=True)
+    run_app("main:APP", log_level="trace", reload=True)

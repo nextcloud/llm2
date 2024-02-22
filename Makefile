@@ -48,3 +48,10 @@ register:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 manual_install --json-info \
   "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"port\":9081,\"scopes\":[\"AI_PROVIDERS\"],\"system_app\":0}" \
   --force-scopes --wait-finish
+
+.PHONY: register_local
+register_local:
+	sudo -u www-data php /var/www/nextcloud/occ app_api:app:unregister llm2 --silent || true
+	sudo -u www-data php /var/www/nextcloud/occ app_api:app:register llm2 manual_install --json-info \
+		"{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"192.168.0.199\",\"port\":9032,\"scopes\":[\"AI_PROVIDERS\"],\"system_app\":0}" \
+  --force-scopes --wait-finish
