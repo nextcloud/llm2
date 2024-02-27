@@ -24,8 +24,7 @@ def get_model_config(file_name):
         with open(model_config_path, "r") as f:
             model_config = json.load(f)
     else:
-        model_config_path = os.path.join(dir_path, "default_config", "config.json")
-
+        model_config_path = os.path.join(dir_path, "../default_config", "config.json")
         with open(model_config_path, "r") as f:
             default_config = json.load(f)
 
