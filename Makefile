@@ -28,7 +28,8 @@ download-models:
 	cd models && \
 	wget https://download.nextcloud.com/server/apps/llm/leo-hessianai-13B-chat-bilingual-GGUF/leo-hessianai-13b-chat-bilingual.Q4_K_M.gguf \
 	&& wget https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_0.gguf \
-	&& wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf
+	&& wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf \
+	&& wget https://huggingface.co/Nextcloud-AI/llm_neuralbeagle_14_7b_gguf/resolve/main/neuralbeagle14-7b.Q4_K_M.gguf
 
 .PHONY: deploy
 deploy:
