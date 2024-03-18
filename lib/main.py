@@ -8,11 +8,12 @@ from contextlib import asynccontextmanager
 from time import perf_counter
 
 import pydantic
-from chains import chains
+from chains import generate_chains
 from fastapi import Depends, FastAPI, responses
 from nc_py_api import AsyncNextcloudApp, NextcloudApp
 from nc_py_api.ex_app import LogLvl, anc_app, run_app, set_handlers
 
+chains = generate_chains()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):

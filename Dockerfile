@@ -8,6 +8,7 @@ ADD j[s] /app/js
 ADD l10[n] /app/l10n
 ADD li[b] /app/lib
 ADD model[s] /app/models
+ADD default_confi[g] /app/default_config
 
 RUN \
   python3 -m pip install -r requirements.txt && rm -rf ~/.cache && rm requirements.txt

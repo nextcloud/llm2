@@ -1,0 +1,42 @@
+{
+    "llama-2-7b-chat.Q4_K_M": {
+        "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
+        "gpt4all_config": {
+            "max_tokens": 4096,
+            "n_predict": 2048,
+            "stop": ["<|im_end|>"]
+        }
+    },
+    "gpt4all-falcon-q4_0": {
+        "prompt": "### Instruction: {system_prompt}\n{user_prompt}\n### Response:",
+        "gpt4all_config": {
+            "max_tokens": 4096,
+            "n_predict": 2048,
+            "stop": ["### Instruction:"]
+        }
+    },
+    "leo-hessianai-13b-chat-bilingual.Q4_K_M": {
+        "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
+        "gpt4all_config": {
+            "max_tokens": 4096,
+            "n_predict": 2048,
+            "stop": ["<|im_end|>"]
+        }
+    },
+    "neuralbeagle14-7b.Q4_K_M": {
+        "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
+        "gpt4all_config": {
+            "max_tokens": 8000,
+            "n_predict": 4000,
+            "stop": ["<|im_end|>"]
+        }
+    },
+    "default": {
+        "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
+        "gpt4all_config": {
+            "max_tokens": 4096,
+            "n_predict": 2048,
+            "stop": ["<|im_end|>"]
+        }
+    }
+}
