@@ -54,11 +54,11 @@ def generate_chains():
 
             llm_chain = generate_llm_chain(file.name)
 
-            chains[model_name + ":summarize"] = lambda: SummarizeChain(llm_chain=llm_chain)
-            #chains[model_name + ":simplify"] = lambda: SimplifyChain(llm=llm_chain)
-            #chains[model_name + ":formalize"] = lambda: FormalizeChain(llm=llm_chain)
-            chains[model_name + ":headline"] = lambda: HeadlineChain(llm=llm_chain)
-            chains[model_name + ":topics"] = lambda: TopicsChain(llm=llm_chain)
-            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm=llm_chain)
+            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain)
+            #chains[model_name + ":simplify"] = lambda: SimplifyChain(llm_chain=llm_chain)
+            #chains[model_name + ":formalize"] = lambda: FormalizeChain(llm_chain=llm_chain)
+            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain)
+            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain)
+            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain)
 
     return chains
