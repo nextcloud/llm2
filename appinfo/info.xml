@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <info>
 	<id>llm2</id>
-	<name>Local large langauge model</name>
-	<summary>Local large langauge model</summary>
+	<name>Local large language model</name>
+	<summary>Local large language model</summary>
 	<description>
 	<![CDATA[
 **Requires [`AppAPI`](https://github.com/cloud-py-api/app_api) to work.**
 	]]></description>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<licence>MIT</licence>
 	<author mail="mklehr@gmx.net" homepage="https://github.com/marcelklehr">Marcel Klehr</author>
 	<author mail="bigcat88@icloud.com" homepage="https://github.com/bigcat88">Alexander Piskun</author>
@@ -23,7 +23,7 @@
 		<docker-install>
 			<registry>ghcr.io</registry>
 			<image>nextcloud/llm2</image>
-			<image-tag>latest</image-tag>
+			<image-tag>1.1.0</image-tag>
 		</docker-install>
 		<scopes>
 			<value>AI_PROVIDERS</value>
