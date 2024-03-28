@@ -9,13 +9,13 @@ help:
 	@echo "  "
 	@echo "  build-push        build image and upload to ghcr.io"
 	@echo "  "
-	@echo "  deploy            deploy Txt2TxtProvider to registered 'docker_dev' for Nextcloud Last"
-	@echo "  "
+	@echo "  run29             install Txt2TxtProvider for Nextcloud 29"
 	@echo "  run               install Txt2TxtProvider for Nextcloud Last"
 	@echo "  "
 	@echo "  For development of this example use PyCharm run configurations. Development is always set for last Nextcloud."
 	@echo "  First run 'Txt2TxtProvider' and then 'make registerXX', after that you can use/debug/develop it and easy test."
 	@echo "  "
+	@echo "  register29        perform registration of running Txt2TxtProvider into the 'manual_install' deploy daemon."
 	@echo "  register          perform registration of running Txt2TxtProvider into the 'manual_install' deploy daemon."
 
 .PHONY: build-push
@@ -31,21 +31,28 @@ download-models:
 	&& wget https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf \
 	&& wget https://huggingface.co/Nextcloud-AI/llm_neuralbeagle_14_7b_gguf/resolve/main/neuralbeagle14-7b.Q4_K_M.gguf
 
-.PHONY: deploy
-deploy:
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:deploy llm2 docker_dev \
+.PHONY: run29
+run29:
+	docker exec master-stable29-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
+	docker exec master-stable29-1 sudo -u www-data php occ app_api:app:register llm2 --force-scopes \
 		--info-xml https://raw.githubusercontent.com/cloud-py-api/llm2/appinfo/info.xml
 
 .PHONY: run
 run:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
-	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 docker_dev --force-scopes \
+	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 --force-scopes \
 		--info-xml https://raw.githubusercontent.com/cloud-py-api/llm2/appinfo/info.xml
+
+.PHONY: register29
+register29:
+	docker exec master-stable29-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
+	docker exec master-stable29-1 sudo -u www-data php occ app_api:app:register llm2 manual_install --json-info \
+  "{\"id\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"port\":9081,\"scopes\":[\"AI_PROVIDERS\"],\"system\":0}" \
+  --force-scopes --wait-finish
 
 .PHONY: register
 register:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister llm2 --silent || true
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:register llm2 manual_install --json-info \
-  "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"port\":9081,\"scopes\":[\"AI_PROVIDERS\"],\"system_app\":0}" \
+  "{\"id\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"port\":9081,\"scopes\":[\"AI_PROVIDERS\"],\"system\":0}" \
   --force-scopes --wait-finish
