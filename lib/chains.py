@@ -52,29 +52,30 @@ def generate_llm_chain(file_name):
 
     return LLMChain(llm=llm, prompt=prompt)
 
+
 def generate_chains():
     chains = {}
     for file in os.scandir(models_folder_path):
         if file.name.endswith(".gguf"):
             model_name = file.name.split('.gguf')[0]
 
-            llm_chain = generate_llm_chain(file.name)
+            llm_chain = lambda: generate_llm_chain(file.name)
 
-            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain)
-            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain)
-            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain)
-            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain)
+            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
+            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
+            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain())
+            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain())
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
             model_name = file.name.split('.gguf')[0]
 
-            llm_chain = generate_llm_chain(file.name)
+            llm_chain = lambda: generate_llm_chain(file.name)
 
-            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain)
-            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain)
-            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain)
-            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain)
+            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
+            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
+            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain())
+            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain())
 
 
     return chains

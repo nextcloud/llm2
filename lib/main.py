@@ -36,7 +36,7 @@ class BackgroundProcessTask(threading.Thread):
             task = TASK_LIST.get(block=True)
             try:
                 chain_name = task.get("chain")
-                print(f"chain: {chain_name}")
+                print(f"chain: {chain_name}", flush=True)
                 chain_load = chains.get(chain_name)
                 if chain_load is None:
                     NextcloudApp().providers.text_processing.report_result(
@@ -44,18 +44,18 @@ class BackgroundProcessTask(threading.Thread):
                     )
                     continue
                 chain = chain_load()
-                print("generating reply")
+                print("generating reply", flush=True)
                 time_start = perf_counter()
                 result = chain.invoke(task.get("prompt")).get("text")
                 del chain
-                print(f"reply generated: {perf_counter() - time_start}s")
-                print(result)
+                print(f"reply generated: {perf_counter() - time_start}s", flush=True)
+                print(result, flush=True)
                 NextcloudApp().providers.text_processing.report_result(
                     task["id"],
                     str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
                 )
             except Exception as e:  # noqa
-                print(str(e))
+                print(str(e), flush=True)
                 nc = NextcloudApp()
                 nc.log(LogLvl.ERROR, str(e))
                 nc.providers.text_processing.report_result(task["id"], error=str(e))
@@ -80,7 +80,7 @@ async def tiny_llama(
 
 
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
-    print(f"enabled={enabled}")
+    print(f"enabled={enabled}", flush=True)
     if enabled is True:
         for chain_name, _ in chains.items():
             (model, task) = chain_name.split(":", 2)
