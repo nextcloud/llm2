@@ -50,8 +50,17 @@ class BackgroundProcessTask(threading.Thread):
 
             task = response["task"]
             provider = response["provider"]
+            print(task)
+            print(provider)
 
             nc.set_user(task["userId"])
+
+            # TODO: Remove stub
+            nc.providers.task_processing.report_result(
+                task["id"],
+                {"output": "result"},
+            )
+            continue
 
             try:
                 chain_name = provider["name"][5:]
