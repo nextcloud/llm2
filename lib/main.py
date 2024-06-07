@@ -41,8 +41,6 @@ class BackgroundProcessTask(threading.Thread):
             task_type_ids.add("core:text2text:" + task)
 
         while True:
-            # Reset user
-            nc.set_user("")
             response = nc.providers.task_processing.next_task(list(task_type_ids))
             if not isinstance(response, dict):
                 time.sleep(5)
@@ -52,8 +50,6 @@ class BackgroundProcessTask(threading.Thread):
             provider = response["provider"]
             print(task)
             print(provider)
-
-            nc.set_user(task["userId"])
 
             # TODO: Remove stub
             nc.providers.task_processing.report_result(
