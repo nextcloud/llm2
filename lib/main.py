@@ -34,23 +34,32 @@ APP = FastAPI(lifespan=lifespan)
 class BackgroundProcessTask(threading.Thread):
     def run(self, *args, **kwargs):  # pylint: disable=unused-argument
         nc = NextcloudApp()
-        # Hack to workaround auth problems
-        nc.set_user("admin")
+
+        task_type_ids = set()
+        for chain_name, _ in chains.items():
+            (model, task) = chain_name.split(":", 2)
+            task_type_ids.add("core:text2text:" + task)
 
         while True:
-            response = nc.providers.task_processing.next_task("core:text2text")
+            # Reset user
+            nc.set_user("")
+            response = nc.providers.task_processing.next_task(list(task_type_ids))
             if not isinstance(response, dict):
+                time.sleep(5)
                 continue
 
             task = response["task"]
+            provider = response["provider"]
+
+            nc.set_user(task["userId"])
 
             try:
-                chain_name = task["name"][4:]
+                chain_name = provider["name"][5:]
                 print(f"chain: {chain_name}", flush=True)
                 chain_load = chains.get(chain_name)
                 if chain_load is None:
                     NextcloudApp().providers.task_processing.report_result(
-                        task["id"], error="Requested model is not available"
+                        task["id"], error_message="Requested model is not available"
                     )
                     continue
                 chain = chain_load()
@@ -62,13 +71,13 @@ class BackgroundProcessTask(threading.Thread):
                 print(result, flush=True)
                 NextcloudApp().providers.task_processing.report_result(
                     task["id"],
-                    str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
+                    {"output": str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip()},
                 )
             except Exception as e:  # noqa
                 print(str(e), flush=True)
                 nc = NextcloudApp()
                 nc.log(LogLvl.ERROR, str(e))
-                nc.providers.task_processing.report_result(task["id"], error=str(e))
+                nc.providers.task_processing.report_result(task["id"], error_message=str(e))
 
 
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
