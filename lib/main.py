@@ -35,13 +35,15 @@ class BackgroundProcessTask(threading.Thread):
     def run(self, *args, **kwargs):  # pylint: disable=unused-argument
         nc = NextcloudApp()
 
+        provider_ids = set()
         task_type_ids = set()
         for chain_name, _ in chains.items():
+            provider_ids.add("llm2:" + chain_name)
             (model, task) = chain_name.split(":", 2)
             task_type_ids.add("core:text2text:" + task)
 
         while True:
-            response = nc.providers.task_processing.next_task(list(task_type_ids))
+            response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not isinstance(response, dict):
                 time.sleep(5)
                 continue
