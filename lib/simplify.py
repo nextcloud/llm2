@@ -25,7 +25,7 @@ class SimplifyChain(Chain):
         "
         {text}
         "
-        Rewrite and rephrase the above text to make it easier to understand, so that a 5-year-old child can understand it. Describe difficult concepts in the text instead of using jargon terms directly. Do not make up anything new that is not in the original text. Only return the new, rewritten text.
+        Rewrite and rephrase the above text to make it easier to understand, so that a 5-year-old child can understand it. Describe difficult concepts in the text instead of using jargon terms directly. Do not make up anything new that is not in the original text. Make sure to use the same language as the above text. Output only the new, rewritten text in the original language of the original text, nothing else.
         """
     )
 

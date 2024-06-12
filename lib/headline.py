@@ -19,11 +19,11 @@ class HeadlineChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Find a headline for the following text
+        Give me the headline of the following text in its original language. Output only the headline.
         "
         {text}
         "
-        Write a single headline for the above text in one sentence
+        Give me the headline of the above text in its original language. Do not output the language. Output only the headline without any quotes or additional punctuation.
         """
     )
 

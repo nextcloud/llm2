@@ -21,11 +21,11 @@ class SummarizeChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Please write a summary of the following text to make it shorter without losing key information and also don't add anything new:
+        Summarize the following text. Detect the language of the text. Use the same language as the text. Here is the text:
         "
         {text}
         "
-        Please write a summary of the above text to make it shorter without losing key information and also don't add anything new:
+        Output only the summary. Here is your summary in the same language as the text:
         """
     )
 
