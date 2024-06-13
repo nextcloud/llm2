@@ -25,9 +25,9 @@ class FormalizeChain(Chain):
         "
         {text}
         "
-        Write the above text again, rephrase it to use only formal language and be very polite.
+        Write the above text again, rephrase it to use only formal words and be very polite. Also, Detect the language of the above text. When rephrasing the text make sure to use the same language as the original text in your rewritten text. Output only the new text, nothing else, no introductory sentence. Also do not output the name of the language you detected.
         """
-    )
+    )# Does not work with llama 3 8B :(
 
 
     """Prompt object to use."""

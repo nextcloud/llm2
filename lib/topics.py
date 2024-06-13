@@ -24,7 +24,7 @@ class TopicsChain(Chain):
         "
         {text}
         "
-        List 5 topics of the above text as keywords separated by commas:
+        List 5 topics of the above text as keywords separated by commas. Output only the topics, nothing else. Use the same language for the topics as the text.
         """
     )
 
