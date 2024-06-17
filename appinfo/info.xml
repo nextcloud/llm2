@@ -27,6 +27,7 @@
 		</docker-install>
 		<scopes>
 			<value>AI_PROVIDERS</value>
+			<value>TASK_PROCESSING</value>
 		</scopes>
 		<system>false</system>
 	</external-app>
