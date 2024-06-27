@@ -31,6 +31,14 @@
             "stop": ["<|im_end|>"]
         }
     },
+    "Meta-Llama-3-8B-Instruct-IQ4_NL.gguf": {
+        "prompt": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+        "gpt4all_config": {
+            "max_tokens": 8096,
+            "n_predict": 2048,
+            "stop": ["<|eot_id|>"]
+        }
+    },
     "default": {
         "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
         "gpt4all_config": {
