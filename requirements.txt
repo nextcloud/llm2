@@ -1,11 +1,8 @@
-nc_py_api[app]>=0.8.0
+nc_py_api[app]>=0.11.0
 transformers>=4.36.1
 accelerate
 huggingface_hub
-torch
-torchvision
-torchaudio
 pydantic
-gpt4all==2.1.0
 langchain==0.1.0
 langchain-community
+llama-cpp-python

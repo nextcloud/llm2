@@ -5,7 +5,7 @@ import os
 
 from free_prompt import FreePromptChain
 from headline import HeadlineChain
-from langchain_community.llms import GPT4All
+from langchain.llms.llamacpp import LlamaCpp
 from langchain.chains import LLMChain
 from summarize import SummarizeChain
 from topics import TopicsChain
@@ -38,6 +38,18 @@ def get_model_config(file_name):
     return model_config
 
 
+config = {
+    "llama": {
+        "n_batch": 10,
+        "n_ctx": 4096,
+        "n_gpu_layers": -1,
+        "model_kwargs": {
+            "device": "cuda"
+        }
+    }
+}
+
+
 def generate_llm_chain(file_name):
     model_config = get_model_config(file_name)
 
@@ -46,11 +58,27 @@ def generate_llm_chain(file_name):
     if not os.path.exists(path):
         path = os.path.join(persistent_storage(), file_name)
 
-    llm = GPT4All(model=path, device="cpu", **model_config['gpt4all_config'])
+    try:
+        llm = LlamaCpp(
+            model_path=path,
+            device=config["llama"]["model_kwargs"]["device"],
+            n_gpu_layers=config["llama"]["n_gpu_layers"],
+            n_ctx=model_config['gpt4all_config']["n_predict"],
+            max_tokens=model_config["gpt4all_config"]["max_tokens"]
+        )
+        print(f'Using: {config["llama"]["model_kwargs"]["device"]}', flush=True)
+    except Exception as gpu_error:
+        try:
+            llm = LlamaCpp(model_path=path, device="cpu", max_tokens=4096)
+            print("Using: CPU", flush=True)
+        except Exception as cpu_error:
+            raise RuntimeError(f"Error: Failed to initialize the LLM model on both GPU and CPU.", f"{cpu_error}") from cpu_error
 
     prompt = PromptTemplate.from_template(model_config['prompt'])
 
     return LLMChain(llm=llm, prompt=prompt)
+
+
 
 
 def generate_chains():

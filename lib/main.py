@@ -44,11 +44,11 @@ class BackgroundProcessTask(threading.Thread):
                     )
                     continue
                 chain = chain_load()
-                print("generating reply", flush=True)
+                print("Generating reply", flush=True)
                 time_start = perf_counter()
                 result = chain.invoke(task.get("prompt")).get("text")
                 del chain
-                print(f"reply generated: {perf_counter() - time_start}s", flush=True)
+                print(f"reply generated: {round(float(perf_counter() - time_start), 2)}s", flush=True)
                 print(result, flush=True)
                 NextcloudApp().providers.text_processing.report_result(
                     task["id"],
@@ -84,15 +84,27 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     if enabled is True:
         for chain_name, _ in chains.items():
             (model, task) = chain_name.split(":", 2)
-            await nc.providers.text_processing.register(
-                "llm2:"+chain_name, "Local Large language Model: " + model, "/chain/" + chain_name, task
-            )
+            try:
+                await nc.providers.text_processing.register(
+                    "llm2:"+chain_name, "Local Large language Model: " + model, "/chain/" + chain_name, task
+                )
+                print(f"Registering {model} - {task}", flush=True)
+            except Exception as e:
+                print(f"Failed to register", f"{model} - {task}", f"Error:", f"{e}\n", flush=True)
     else:
         for chain_name, chain in chains.items():
             (model, task) = chain_name.split(":", 2)
             await nc.providers.text_processing.unregister(model)
+            print(f"Unregistering {model} - {task}", flush=True)
     return ""
 
 
 if __name__ == "__main__":
+    # print(os.environ["APP_HOST"], flush=True)
+    # print(os.environ["APP_ID"], flush=True)
+    # print(os.environ["APP_PORT"], flush=True)
+    # print(os.environ["APP_SECRET"], flush=True)
+    # print(os.environ["APP_VERSION"], flush=True)
+    # print(os.environ["NEXTCLOUD_URL"], flush=True)
+    # print(os.environ["APP_PERSISTENT_STORAGE"], flush=True)
     run_app("main:APP", log_level="trace")
