@@ -3,6 +3,6 @@ transformers>=4.36.1
 accelerate
 huggingface_hub
 pydantic
-langchain==0.1.0
+langchain==0.1.12
 langchain-community
 llama-cpp-python

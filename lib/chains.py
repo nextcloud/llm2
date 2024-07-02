@@ -61,10 +61,11 @@ def generate_llm_chain(file_name):
     try:
         llm = LlamaCpp(
             model_path=path,
-            device=config["llama"]["model_kwargs"]["device"],
+            model_kwargs={'device': config["llama"]["model_kwargs"]["device"]},
             n_gpu_layers=config["llama"]["n_gpu_layers"],
             n_ctx=model_config['gpt4all_config']["n_predict"],
-            max_tokens=model_config["gpt4all_config"]["max_tokens"]
+            max_tokens=model_config["gpt4all_config"]["max_tokens"],
+            stop=model_config["gpt4all_config"]["stop"],
         )
         print(f'Using: {config["llama"]["model_kwargs"]["device"]}', flush=True)
     except Exception as gpu_error:
@@ -87,7 +88,8 @@ def generate_chains():
         if file.name.endswith(".gguf"):
             model_name = file.name.split('.gguf')[0]
 
-            llm_chain = lambda: generate_llm_chain(file.name)
+            chain = [None]
+            llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file.name)) or chain[-1]
 
             chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
             chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain())

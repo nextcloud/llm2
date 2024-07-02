@@ -46,13 +46,14 @@ class BackgroundProcessTask(threading.Thread):
                 chain = chain_load()
                 print("Generating reply", flush=True)
                 time_start = perf_counter()
+                print(task.get("prompt"))
                 result = chain.invoke(task.get("prompt")).get("text")
                 del chain
                 print(f"reply generated: {round(float(perf_counter() - time_start), 2)}s", flush=True)
                 print(result, flush=True)
                 NextcloudApp().providers.text_processing.report_result(
                     task["id"],
-                    str(result).split(sep="<|assistant|>", maxsplit=1)[-1].strip(),
+                    str(result),
                 )
             except Exception as e:  # noqa
                 print(str(e), flush=True)

@@ -54,4 +54,4 @@ class FreePromptChain(Chain):
 
     @property
     def _chain_type(self) -> str:
-        return "summarize_chain"
+        return "free_prompt"
