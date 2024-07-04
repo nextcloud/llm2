@@ -31,12 +31,12 @@
             "stop": ["<|im_end|>"]
         }
     },
-    "meta-Llama-3-8B-instruct.Q4_K_M": {
-        "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
+    "Meta-Llama-3-8B-Instruct.Q4_K_M": {
+        "prompt": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n{user_prompt}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n",
         "gpt4all_config": {
             "max_tokens": 8000,
             "n_predict": 4000,
-            "stop": ["<|im_end|>"]
+            "stop": ["<|eot_id|>"]
         }
     },
     "default": {
