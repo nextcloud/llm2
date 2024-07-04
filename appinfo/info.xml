@@ -25,7 +25,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 		<docker-install>
 			<registry>ghcr.io</registry>
 			<image>nextcloud/llm2</image>
-			<image-tag>1.2.0</image-tag>
+			<image-tag>1.2.1</image-tag>
 		</docker-install>
 		<scopes>
 			<value>AI_PROVIDERS</value>
