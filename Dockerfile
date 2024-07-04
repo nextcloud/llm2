@@ -23,12 +23,10 @@ RUN apt-get install -y python3.11-venv
 RUN apt-get install -y python3.11-dev
 RUN apt-get install -y python3-pip
 
+ENV CMAKE_ARGS="-DLLAMA_CUDA=on"
+
 RUN \
   python3 -m pip install -r requirements.txt && rm -rf ~/.cache && rm requirements.txt
-
-RUN python3 -m pip uninstall -y llama-cpp-python \
-    && python3 -m pip install llama-cpp-python \
-      --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu122
 
 WORKDIR /app/lib
 ENTRYPOINT ["python3", "main.py"]

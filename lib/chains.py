@@ -66,11 +66,16 @@ def generate_llm_chain(file_name):
             n_ctx=model_config['gpt4all_config']["n_predict"],
             max_tokens=model_config["gpt4all_config"]["max_tokens"],
             stop=model_config["gpt4all_config"]["stop"],
+            echo=True
         )
         print(f'Using: {config["llama"]["model_kwargs"]["device"]}', flush=True)
     except Exception as gpu_error:
         try:
-            llm = LlamaCpp(model_path=path, device="cpu", max_tokens=4096)
+            llm = LlamaCpp(model_path=path, device="cpu",
+                           n_ctx=model_config['gpt4all_config']["n_predict"],
+                           max_tokens=model_config["gpt4all_config"]["max_tokens"],
+                           stop=model_config["gpt4all_config"]["stop"],
+                           echo=True)
             print("Using: CPU", flush=True)
         except Exception as cpu_error:
             raise RuntimeError(f"Error: Failed to initialize the LLM model on both GPU and CPU.", f"{cpu_error}") from cpu_error
