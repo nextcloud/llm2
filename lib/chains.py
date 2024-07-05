@@ -5,7 +5,7 @@ import os
 
 from free_prompt import FreePromptChain
 from headline import HeadlineChain
-from langchain.llms.llamacpp import LlamaCpp
+from langchain_community.llms import LlamaCpp
 from langchain.chains import LLMChain
 from summarize import SummarizeChain
 from topics import TopicsChain

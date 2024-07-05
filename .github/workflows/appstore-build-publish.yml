@@ -92,11 +92,6 @@ jobs:
           cd ${{ env.APP_NAME }}
           npm ci
           npm run build
-      
-      - name: Download files
-        run: |
-          cd ${{ env.APP_NAME }}
-          make download-models
 
       - name: Check Krankerl config
         id: krankerl
