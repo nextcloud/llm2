@@ -43,7 +43,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 
 2. Install dependencies (recommended to use a Virtual Environment)
     
-    > python3 -m pip install -r requirements.txt
+    > poetry install
 
 3. If you want hardware acceleration support, check the Llama.cpp docs for your accelerator: https://llama-cpp-python.readthedocs.io/en/latest/
 
