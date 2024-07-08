@@ -1,6 +1,6 @@
 #! /bin/bash
-PATH="/root/.local/bin/:$PATH"
-CMAKE_ARGS="-DLLAMA_CUDA=on"
+export PATH="/root/.local/bin/:$PATH"
+export CMAKE_ARGS="-DLLAMA_CUDA=on"
 source $(poetry env info --path)/bin/activate
 poetry install
 cd lib

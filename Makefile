@@ -21,7 +21,7 @@ help:
 .PHONY: build-push
 build-push:
 	docker login ghcr.io
-	docker build --push --platform linux/amd64 --tag ghcr.io/nextcloud/llm2:1.2.4 .
+	docker build --push --platform linux/amd64 --tag ghcr.io/nextcloud/llm2:1.2.5 .
 
 .PHONY: download-models
 download-models:
