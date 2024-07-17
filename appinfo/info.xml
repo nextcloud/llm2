@@ -29,6 +29,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 		</docker-install>
 		<scopes>
 			<value>AI_PROVIDERS</value>
+			<value>TASK_PROCESSING</value>
 		</scopes>
 		<system>false</system>
 	</external-app>
