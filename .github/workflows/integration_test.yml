@@ -135,7 +135,7 @@ jobs:
       - name: Register backend
         run: |
           ./occ app_api:daemon:register --net host manual_install "Manual Install" manual-install http localhost http://localhost:8080
-          ./occ app_api:app:register context_chat_backend manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"2.2.0\",\"secret\":\"12345\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\", \"TASK_PROCESSING\"],\"system_app\":0}" --force-scopes --wait-finish
+          ./occ app_api:app:register llm2 manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"2.2.0\",\"secret\":\"12345\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\", \"TASK_PROCESSING\"],\"system_app\":0}" --force-scopes --wait-finish
 
       - name: Show logs
         if: always()
