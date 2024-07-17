@@ -142,4 +142,4 @@ jobs:
         run: |
           tail data/nextcloud.log
           echo '--------------------------------------------------'
-          [ -f context_chat_backend/backend_logs ] && cat context_chat_backend/backend_logs || echo "No backend logs"
+          [ -f ${{ env.APP_NAME }}/backend_logs ] && cat ${{ env.APP_NAME }}/backend_logs || echo "No backend logs"
