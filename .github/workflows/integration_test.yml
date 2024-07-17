@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: Nextcloud contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Integration test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - stable*
+
+env:
+  APP_NAME: llm2
+
+concurrency:
+  group: integration-test-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+
+jobs:
+  transcription:
+    runs-on: ubuntu-22.04
+
+    strategy:
+      # do not stop on another job's failure
+      fail-fast: false
+      matrix:
+        php-versions: [ '8.1' ]
+        databases: [ 'sqlite' ]
+        server-versions: [ 'master' ]
+
+    name: Integration test on ☁️${{ matrix.server-versions }} 🐘${{ matrix.php-versions }}
+
+    env:
+      MYSQL_PORT: 4444
+      PGSQL_PORT: 4445
+
+    services:
+      mysql:
+        image: mariadb:10.5
+        ports:
+          - 4444:3306/tcp
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+        options: --health-cmd="mysqladmin ping" --health-interval 5s --health-timeout 2s --health-retries 5
+      postgres:
+        image: postgres
+        ports:
+          - 4445:5432/tcp
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: rootpassword
+          POSTGRES_DB: nextcloud
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 2s --health-retries 5
+
+    steps:
+      - name: Checkout server
+        uses: actions/checkout@v4
+        with:
+          repository: nextcloud/server
+          ref: ${{ matrix.server-versions }}
+
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+
+      - name: Set up php ${{ matrix.php-versions }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-versions }}
+          tools: phpunit
+          extensions: mbstring, iconv, fileinfo, intl, sqlite, pdo_mysql, pdo_sqlite, pgsql, pdo_pgsql, gd, zip
+
+      - name: Checkout app
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.APP_NAME }}
+
+      - name: Checkout AppAPI
+        uses: actions/checkout@v4
+        with:
+          repository: cloud-py-api/app_api
+          path: apps/app_api
+
+      - name: Set up Nextcloud
+        if: ${{ matrix.databases != 'pgsql'}}
+        run: |
+          sleep 25
+          mkdir data
+          ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$MYSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
+          php -S localhost:8080 &
+
+      - name: Set up Nextcloud
+        if: ${{ matrix.databases == 'pgsql'}}
+        run: |
+          sleep 25
+          mkdir data
+          ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$PGSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
+          php -S localhost:8080 &
+
+      - name: Enable app and app_api
+        run: ./occ app:enable -vvv -f app_api
+
+      - name: Setup python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+          cache-dependency-path: context_chat_backend/requirements.txt
+
+      - name: Install app
+        working-directory: ${{ env.APP_NAME }}
+        run: |
+          sudo apt install pipx
+          pipx install poetry
+          poetry install
+
+      - name: Install and init backend
+        working-directory: ${{ env.APP_NAME }}/lib
+        env:
+          PYTHONUNBUFFERED: 1
+          APP_HOST: 0.0.0.0
+          APP_ID: llm2
+          APP_PORT: 9080
+          APP_SECRET: 12345
+          APP_VERSION: 1.1.0
+          NEXTCLOUD_URL: http://localhost:8080
+        run: |
+          poetry run python3 main.py > backend_logs &
+
+      - name: Register backend
+        run: |
+          ./occ app_api:daemon:register --net host manual_install "Manual Install" manual-install http localhost http://localhost:8080
+          ./occ app_api:app:register context_chat_backend manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"2.2.0\",\"secret\":\"12345\",\"port\":10034,\"scopes\":[\"AI_PROVIDERS\", \"TASK_PROCESSING\"],\"system_app\":0}" --force-scopes --wait-finish
+
+      - name: Show logs
+        if: always()
+        run: |
+          tail data/nextcloud.log
+          echo '--------------------------------------------------'
+          [ -f context_chat_backend/backend_logs ] && cat context_chat_backend/backend_logs || echo "No backend logs"

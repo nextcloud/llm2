@@ -31,7 +31,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
     - *Register manually:*
 
       > sudo -u www-data php /var/www/nextcloud/occ app_api:app:unregister llm2 --silent || true
-      sudo -u www-data php /var/www/nextcloud/occ app_api:app:register llm2 manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"localhost\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\"],\"system_app\":0}" --force-scopes --wait-finish
+      sudo -u www-data php /var/www/nextcloud/occ app_api:app:register llm2 manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"1.0.0\",\"secret\":\"12345\",\"host\":\"localhost\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\", "TASK_PROCESSING"],\"system_app\":0}" --force-scopes --wait-finish
 
 ## Development installation on bare metal
 
