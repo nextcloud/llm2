@@ -41,6 +41,11 @@ class BackgroundProcessTask(threading.Thread):
             task_type_ids.add("core:text2text:" + task)
 
         while True:
+            enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
+            if not enabled_flag:
+                time.sleep(5)
+                continue
+
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not response:
                 time.sleep(5)
