@@ -37,8 +37,8 @@ class BackgroundProcessTask(threading.Thread):
         task_type_ids = set()
         for chain_name, _ in chains.items():
             provider_ids.add("llm2:" + chain_name)
-            (model, task) = chain_name.split(":", 2)
-            task_type_ids.add("core:text2text:" + task)
+            (model, task) = chain_name.split(":", 1)
+            task_type_ids.add(task)
 
         while True:
             enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
@@ -66,8 +66,8 @@ class BackgroundProcessTask(threading.Thread):
                 chain = chain_load()
                 print("Generating reply", flush=True)
                 time_start = perf_counter()
-                print(task.get("input").get("input"))
-                result = chain.invoke(task.get("input").get("input")).get("text")
+                print(task.get("input").get("input"), flush=True)
+                result = chain.invoke(task.get("input")).get("text")
                 del chain
                 print(f"reply generated: {round(float(perf_counter() - time_start), 2)}s", flush=True)
                 print(result, flush=True)
@@ -86,11 +86,22 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     print(f"enabled={enabled}", flush=True)
     if enabled is True:
         for chain_name, _ in chains.items():
-            (model, task) = chain_name.split(":", 2)
+            (model, task) = chain_name.split(":", 1)
             try:
-                await nc.providers.task_processing.register(
-                    "llm2:" + chain_name, "Local Large language Model: " + model, "core:text2text:" + task
-                )
+                await nc.providers.task_processing.register({
+                    "id": "llm2:" + chain_name,
+                    "name": "Local Large language Model: " + model,
+                    "task_type": task,
+                    "expected_runtime": 30,
+                    "optional_input_shape": [],
+                    "optional_output_shape": [],
+                    "input_shape_enum_values": {},
+                    "input_shape_defaults": {},
+                    "optional_input_shape_enum_values": {},
+                    "optional_input_shape_defaults": {},
+                    "output_shape_enum_values": {},
+                    "optional_output_shape_enum_values": {},
+                })
                 print(f"Registering {chain_name}", flush=True)
             except Exception as e:
                 print(f"Failed to register", f"{model} - {task}", f"Error:", f"{e}\n", flush=True)
