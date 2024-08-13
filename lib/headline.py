@@ -19,11 +19,13 @@ class HeadlineChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Give me the headline of the following text in its original language. Output only the headline.
-        "
-        {text}
-        "
-        Give me the headline of the above text in its original language. Do not output the language. Output only the headline without any quotes or additional punctuation.
+Give me the headline of the following text in its original language. Output only the headline.
+
+"
+{text}
+"
+
+Give me the headline of the above text in its original language. Do not output the language. Output only the headline without any quotes or additional punctuation.
         """
     )
 
@@ -44,7 +46,7 @@ class HeadlineChain(Chain):
 
         :meta private:
         """
-        return [self.output_key]
+        return ['input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -65,7 +67,7 @@ class HeadlineChain(Chain):
         if not self.llm_chain.output_keys == [self.output_key]:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
-        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['text']), "system_prompt": self.system_prompt})
+        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
 
     @property
     def _chain_type(self) -> str:

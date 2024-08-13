@@ -21,11 +21,14 @@ class SummarizeChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Summarize the following text. Detect the language of the text. Use the same language as the text. Here is the text:
-        "
-        {text}
-        "
-        Output only the summary. Here is your summary in the same language as the text:
+Summarize the following text. Detect the language of the text. Use the same language as the one you detected. Here is the text:
+
+"
+{text}
+"
+
+Output only the summary without quotes, nothing else, especially no introductory or explanatory text. Also, do not mention the language you used explicitly.
+Here is your summary in the same language as the text:
         """
     )
 
@@ -45,7 +48,7 @@ class SummarizeChain(Chain):
 
         :meta private:
         """
-        return [self.output_key]
+        return ['input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -68,11 +71,11 @@ class SummarizeChain(Chain):
         
         text_splitter = CharacterTextSplitter(
             separator='\n\n|\\.|\\?|\\!', chunk_size=8000, chunk_overlap=0, keep_separator=True)
-        texts = text_splitter.split_text(inputs['text'])
-        while sum([len(text) for text in texts]) > max(len(inputs['text']) * 0.2, 1000):  # 2000 chars summary per 10.000 chars original text
+        texts = text_splitter.split_text(inputs['input'])
+        while sum([len(text) for text in texts]) > max(len(inputs['input']) * 0.2, 1000):  # 2000 chars summary per 10.000 chars original text
             docs = [texts[i:i + 3] for i in range(0, len(texts), 3)]
             outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=''.join(doc)), "system_prompt": self.system_prompt} for doc in docs])
-            texts = [output['text'] for output in outputs]
+            texts = [output[self.output_key] for output in outputs]
 
         return {self.output_key: '\n\n'.join(texts)}
 

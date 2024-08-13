@@ -21,13 +21,18 @@ class FormalizeChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Rewrite the following text and rephrase it to use only formal language and be very polite:
-        "
-        {text}
-        "
-        Write the above text again, rephrase it to use only formal words and be very polite. Also, Detect the language of the above text. When rephrasing the text make sure to use the same language as the original text in your rewritten text. Output only the new text, nothing else, no introductory sentence. Also do not output the name of the language you detected.
+Rewrite the following text and rephrase it to use only formal language and be very polite:
+
+"
+{text}
+"
+
+Write the above text again, rephrase it to use only formal words and be very polite. Also, Detect the language of the text.
+When rephrasing the text make sure to use the same language that you detected.
+Output only the new text without quotes, nothing else, no introductory or explanatory text. Also do not explicitly mention the language you detected.
         """
-    )# Does not work with llama 3 8B :(
+    )
+    # Multilingual output doesn't work with llama3.1
 
 
     """Prompt object to use."""
@@ -46,7 +51,7 @@ class FormalizeChain(Chain):
 
         :meta private:
         """
-        return [self.output_key]
+        return ['input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -69,7 +74,7 @@ class FormalizeChain(Chain):
         
         text_splitter = CharacterTextSplitter(
             separator='\n\n|\\.|\\?|\\!', chunk_size=8000, chunk_overlap=0, keep_separator=True)
-        texts = text_splitter.split_text(inputs['text'])
+        texts = text_splitter.split_text(inputs['input'])
         outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=t), "system_prompt": self.system_prompt} for t in texts])
         texts = [output['text'] for output in outputs]
 

@@ -5,10 +5,14 @@ import os
 
 from free_prompt import FreePromptChain
 from headline import HeadlineChain
+from topics import TopicsChain
+from summarize import SummarizeChain
+from contextwrite import ContextWriteChain
+from reformulate import ReformulateChain
+from simplify import SimplifyChain
+from formalize import FormalizeChain
 from langchain_community.llms import LlamaCpp
 from langchain.chains import LLMChain
-from summarize import SummarizeChain
-from topics import TopicsChain
 from langchain.prompts import PromptTemplate
 import json
 from nc_py_api.ex_app import persistent_storage
@@ -96,21 +100,30 @@ def generate_chains():
             chain = [None]
             llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file.name)) or chain[-1]
 
-            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
-            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
-            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain())
-            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
+            chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
             model_name = file.name.split('.gguf')[0]
 
-            llm_chain = lambda: generate_llm_chain(file.name)
+            chain = [None]
+            llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file.name)) or chain[-1]
 
-            chains[model_name + ":summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
-            chains[model_name + ":headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
-            chains[model_name + ":topics"] = lambda: TopicsChain(llm_chain=llm_chain())
-            chains[model_name + ":free_prompt"] = lambda: FreePromptChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
+            # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
+            chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
+            chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
 
 
     return chains

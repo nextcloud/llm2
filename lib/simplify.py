@@ -3,7 +3,6 @@
 
 from typing import Any, Optional
 
-from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import CallbackManagerForChainRun
 from langchain.chains.base import Chain
 from langchain.prompts import PromptTemplate
@@ -21,13 +20,19 @@ class SimplifyChain(Chain):
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-        Rewrite and rephrase the following text to make it easier to understand, so that a 5-year-old child can understand it.
-        "
-        {text}
-        "
-        Rewrite and rephrase the above text to make it easier to understand, so that a 5-year-old child can understand it. Describe difficult concepts in the text instead of using jargon terms directly. Do not make up anything new that is not in the original text. Make sure to use the same language as the above text. Output only the new, rewritten text in the original language of the original text, nothing else.
+Rewrite and rephrase the following text in the same language to make it easier to understand, so that a 5-year-old child can understand it.
+
+"
+{text}
+"
+
+Rewrite and rephrase the above text to make it easier to understand, so that a 5-year-old child can understand it.
+Describe difficult concepts in the text instead of using jargon terms directly. Do not make up anything new that is not in the original text.
+Also, detect the language of the text. Make sure to use the same language as the text in your simplification.
+Output only the new, rewritten text without quotes, nothing else. Do not mention the language of the text explicitly. Do not add any introductory or explanatory text.
         """
     )
+    # Multilingual output doesn't work with llama3.1
 
     llm_chain: LLMChain
     output_key: str = "text"  #: :meta private:
@@ -44,7 +49,7 @@ class SimplifyChain(Chain):
 
         :meta private:
         """
-        return [self.output_key]
+        return ['input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -67,7 +72,7 @@ class SimplifyChain(Chain):
         text_splitter = CharacterTextSplitter(
             separator="\n\n|\\.|\\?|\\!", chunk_size=8000, chunk_overlap=0, keep_separator=True
         )
-        texts = text_splitter.split_text(inputs["text"])
+        texts = text_splitter.split_text(inputs["input"])
         outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=t), "system_prompt": self.system_prompt} for t in texts])
         texts = [output['text'] for output in outputs]
 

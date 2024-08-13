@@ -29,7 +29,7 @@ class FreePromptChain(Chain):
 
         :meta private:
         """
-        return [self.output_key]
+        return ['input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -50,7 +50,7 @@ class FreePromptChain(Chain):
         if not self.llm_chain.output_keys == [self.output_key]:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
-        return self.llm_chain.invoke({"user_prompt": inputs[self.output_key], "system_prompt": "You're an AI assistant tasked with helping the user to the best of your ability."})
+        return self.llm_chain.invoke({"user_prompt": inputs['input'], "system_prompt": "You're an AI assistant tasked with helping the user to the best of your ability."})
 
     @property
     def _chain_type(self) -> str:

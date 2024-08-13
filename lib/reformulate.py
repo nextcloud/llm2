@@ -1,4 +1,4 @@
-"""A chain that extracts topcis from a text
+"""A langchain chain to formalize text
 """
 
 from typing import Any, Optional
@@ -6,29 +6,34 @@ from typing import Any, Optional
 from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import CallbackManagerForChainRun
 from langchain.chains.base import Chain
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.chains import LLMChain
 
-
-
-class TopicsChain(Chain):
+class ReformulateChain(Chain):
     """
-    A topics chain
+    A reformulation chain
     """
-    system_prompt = "You're an AI assistant tasked with finding the topic keywords of the text given to you by the user."
+
+    system_prompt = "You're an AI assistant tasked with reformulating the text given to you by the user."
+    
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
-Find a maximum of 5 topics keywords for the following text:
+Rewrite the following text and rephrase it:
 
 "
 {text}
 "
 
-List 5 topics of the above text as keywords separated by commas. Output only the topics, nothing else, no introductory sentence. Use the same language for the topics as the text.
+Write the above text again and rephrase it using different words.
+Also, Detect the language of the above text.
+When rephrasing the text make sure to use the detected language in your rewritten text.
+Output only the new text without quotes, nothing else, no introductory or explanatory text. Also do not explicitly mention the language you detected.
         """
     )
+    # Multilingual output doesn't work with llama3.1
 
 
     """Prompt object to use."""
@@ -68,7 +73,13 @@ List 5 topics of the above text as keywords separated by commas. Output only the
         if not self.llm_chain.output_keys == [self.output_key]:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
-        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
+        text_splitter = CharacterTextSplitter(
+            separator='\n\n|\\.|\\?|\\!', chunk_size=8000, chunk_overlap=0, keep_separator=True)
+        texts = text_splitter.split_text(inputs['input'])
+        outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=t), "system_prompt": self.system_prompt} for t in texts])
+        texts = [output['text'] for output in outputs]
+
+        return {self.output_key: '\n\n'.join(texts)}
 
     @property
     def _chain_type(self) -> str:

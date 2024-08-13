@@ -1,4 +1,4 @@
-"""A chain that extracts topcis from a text
+"""A langchain chain to formalize text
 """
 
 from typing import Any, Optional
@@ -6,29 +6,36 @@ from typing import Any, Optional
 from langchain.base_language import BaseLanguageModel
 from langchain.callbacks.manager import CallbackManagerForChainRun
 from langchain.chains.base import Chain
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.chains import LLMChain
 
-
-
-class TopicsChain(Chain):
+class ContextWriteChain(Chain):
     """
-    A topics chain
+    A reformulation chain
     """
-    system_prompt = "You're an AI assistant tasked with finding the topic keywords of the text given to you by the user."
+
+    system_prompt = "You're an AI assistant tasked with reformulating the text given to you by the user."
+    
     user_prompt: BasePromptTemplate = PromptTemplate(
-        input_variables=["text"],
+        input_variables=["style_input", "source_input"],
         template="""
-Find a maximum of 5 topics keywords for the following text:
+You're a professional copywriter tasked with copying an instructed or demonstrated *WRITING STYLE* and writing a text on the provided *SOURCE MATERIAL*.
+*WRITING STYLE*:
+{style_input}
 
-"
-{text}
-"
+*SOURCE MATERIAL*:
+{source_input}
 
-List 5 topics of the above text as keywords separated by commas. Output only the topics, nothing else, no introductory sentence. Use the same language for the topics as the text.
+Now write a text in the same style detailed or demonstrated under *WRITING STYLE* using the *SOURCE MATERIAL* as source of facts and instruction on what to write about.
+Do not invent any facts or events yourself. Also, use the *WRITING STYLE* as a guide for how to write the text ONLY and not as a source of facts or events.
+Detect the language used in the *SOURCE_MATERIAL*. Make sure to use the detected language in your text. Do not mention the language you detected explicitly.
+Only output the newly written text without quotes, nothing else, no introductory or explanatory text.
         """
     )
+    # Multilingual output doesn't work with llama3.1
+    # Task doesn't work with llama 3.1
 
 
     """Prompt object to use."""
@@ -47,7 +54,7 @@ List 5 topics of the above text as keywords separated by commas. Output only the
 
         :meta private:
         """
-        return ['input']
+        return ['style_input', 'source_input']
 
     @property
     def output_keys(self) -> list[str]:
@@ -67,8 +74,8 @@ List 5 topics of the above text as keywords separated by commas. Output only the
             raise ValueError("llm_chain must have input_keys ['user_prompt', 'system_prompt']")
         if not self.llm_chain.output_keys == [self.output_key]:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
-        
-        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
+
+        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(style_input=inputs['style_input'], source_input=inputs['source_input']), "system_prompt": self.system_prompt})
 
     @property
     def _chain_type(self) -> str:
