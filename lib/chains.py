@@ -95,35 +95,26 @@ def generate_chains():
     chains = {}
     for file in os.scandir(models_folder_path):
         if file.name.endswith(".gguf"):
-            model_name = file.name.split('.gguf')[0]
 
-            chain = [None]
-            llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file.name)) or chain[-1]
-
-            chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
-            #chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
+            generate_chain_for_model(file.name, chains)
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
-            model_name = file.name.split('.gguf')[0]
-
-            chain = [None]
-            llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file.name)) or chain[-1]
-
-            chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
-            # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
-            chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
-            #chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
-
+            generate_chain_for_model(file.name, chains)
 
     return chains
+
+def generate_chain_for_model(file_name, chains):
+    model_name = file_name.split('.gguf')[0]
+
+    chain = [None]
+    llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file_name)) or chain[-1]
+
+    chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain())
+    chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
+    chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
+    # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain())
+    # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
+    # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
+    chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
+    #chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
