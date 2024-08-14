@@ -107,7 +107,7 @@ def generate_chains():
             # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
             # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
             chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
-            chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
+            #chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
@@ -123,7 +123,7 @@ def generate_chains():
             # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain())
             # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain())
             chains[model_name + ":core:text2text"] = lambda: FreePromptChain(llm_chain=llm_chain())
-            chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
+            #chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
 
 
     return chains
