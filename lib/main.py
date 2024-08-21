@@ -2,13 +2,14 @@
 """
 
 import threading
-import time
-from contextlib import asynccontextmanager
-from time import perf_counter
+from contextlib import asynccontextmanager, suppress
+from time import perf_counter, sleep
 
+import httpx
 from fastapi import FastAPI
-from nc_py_api import AsyncNextcloudApp, NextcloudApp
+from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, run_app, set_handlers
+from nc_py_api.ex_app.providers.task_processing import TaskProcessingProvider
 
 from chains import generate_chains
 
@@ -41,14 +42,20 @@ class BackgroundProcessTask(threading.Thread):
             task_type_ids.add(task)
 
         while True:
-            enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
-            if not enabled_flag:
-                time.sleep(5)
-                continue
+            try:
+                enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
+                if not enabled_flag:
+                    sleep(5)
+                    continue
 
-            response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
-            if not response:
-                time.sleep(5)
+                response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
+                if not response:
+                    sleep(5)
+                    continue
+
+            except (NextcloudException, httpx.RequestError) as e:
+                print("Network error fetching the next task", e, flush=True)
+                sleep(5)
                 continue
 
             task = response["task"]
@@ -63,6 +70,7 @@ class BackgroundProcessTask(threading.Thread):
                         task["id"], error_message="Requested model is not available"
                     )
                     continue
+
                 chain = chain_load()
                 print("Generating reply", flush=True)
                 time_start = perf_counter()
@@ -75,11 +83,19 @@ class BackgroundProcessTask(threading.Thread):
                     task["id"],
                     {"output": str(result)},
                 )
+            except (NextcloudException, httpx.RequestError) as e:
+                print("Network error:", e, flush=True)
+                sleep(5)
             except Exception as e:  # noqa
-                print(str(e), flush=True)
-                nc = NextcloudApp()
-                nc.log(LogLvl.ERROR, str(e))
-                nc.providers.task_processing.report_result(task["id"], error_message=str(e))
+                print("Error:", e, flush=True)
+                try:
+                    nc = NextcloudApp()
+                    nc.log(LogLvl.ERROR, str(e))
+                    nc.providers.task_processing.report_result(task["id"], error_message=str(e))
+                except (NextcloudException, httpx.RequestError) as net_err:
+                    print("Network error in reporting the error:", net_err, flush=True)
+
+                sleep(5)
 
 
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
