@@ -2,19 +2,15 @@
 """
 
 import os
+import json
 
 from free_prompt import FreePromptChain
 from headline import HeadlineChain
 from topics import TopicsChain
 from summarize import SummarizeChain
-from contextwrite import ContextWriteChain
-from reformulate import ReformulateChain
-from simplify import SimplifyChain
-from formalize import FormalizeChain
 from langchain_community.llms import LlamaCpp
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-import json
 from nc_py_api.ex_app import persistent_storage
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -42,18 +38,6 @@ def get_model_config(file_name):
     return model_config
 
 
-config = {
-    "llama": {
-        "n_batch": 10,
-        "n_ctx": 4096,
-        "n_gpu_layers": -1,
-        "model_kwargs": {
-            "device": "cuda"
-        }
-    }
-}
-
-
 def generate_llm_chain(file_name):
     model_config = get_model_config(file_name)
 
@@ -62,33 +46,22 @@ def generate_llm_chain(file_name):
     if not os.path.exists(path):
         path = os.path.join(persistent_storage(), file_name)
 
+    compute_device = os.getenv("COMPUTE_DEVICE", "cuda")
     try:
         llm = LlamaCpp(
             model_path=path,
-            model_kwargs={'device': config["llama"]["model_kwargs"]["device"]},
-            n_gpu_layers=config["llama"]["n_gpu_layers"],
-            n_ctx=model_config['gpt4all_config']["n_predict"],
-            max_tokens=model_config["gpt4all_config"]["max_tokens"],
-            stop=model_config["gpt4all_config"]["stop"],
-            echo=True
+            **{
+                "n_gpu_layers": (0, -1)[compute_device != "cpu"],
+                **model_config["loader_config"],
+            },
         )
-        print(f'Using: {config["llama"]["model_kwargs"]["device"]}', flush=True)
-    except Exception as gpu_error:
-        try:
-            llm = LlamaCpp(model_path=path, device="cpu",
-                           n_ctx=model_config['gpt4all_config']["n_predict"],
-                           max_tokens=model_config["gpt4all_config"]["max_tokens"],
-                           stop=model_config["gpt4all_config"]["stop"],
-                           echo=True)
-            print("Using: CPU", flush=True)
-        except Exception as cpu_error:
-            raise RuntimeError(f"Error: Failed to initialize the LLM model on both GPU and CPU.", f"{cpu_error}") from cpu_error
+    except Exception as e:
+        print(f"Failed to load model '{path}' with compute device '{compute_device}'")
+        raise e
 
     prompt = PromptTemplate.from_template(model_config['prompt'])
 
     return LLMChain(llm=llm, prompt=prompt)
-
-
 
 
 def generate_chains():
@@ -103,6 +76,7 @@ def generate_chains():
             generate_chain_for_model(file.name, chains)
 
     return chains
+
 
 def generate_chain_for_model(file_name, chains):
     model_name = file_name.split('.gguf')[0]
