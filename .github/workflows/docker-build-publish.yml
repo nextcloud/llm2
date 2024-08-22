@@ -1,0 +1,53 @@
+# This workflow is provided via the organization template repository
+#
+# https://github.com/nextcloud/.github
+# https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
+
+name: Docker build and publish
+
+on:
+  push:
+    tags:
+      - '**'
+
+env:
+  APP_ID: translate2
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    # Only allowed to be run on nextcloud repositories
+    if: ${{ github.repository_owner == 'nextcloud' }}
+
+    steps:
+      - name: Checkout app
+        uses: actions/checkout@v4
+
+      - name: Get app version
+        id: appinfo
+        uses: skjnldsv/xpath-action@7e6a7c379d0e9abc8acaef43df403ab4fc4f770c # master
+        with:
+          filename: appinfo/info.xml
+          expression: "/info/version/text()"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/nextcloud/${{ env.APP_ID }}:latest
+            ghcr.io/nextcloud/${{ env.APP_ID }}:${{ fromJson(steps.appinfo.outputs.result).version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
