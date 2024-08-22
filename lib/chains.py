@@ -46,14 +46,19 @@ def generate_llm_chain(file_name):
     if not os.path.exists(path):
         path = os.path.join(persistent_storage(), file_name)
 
-    is_gpu = os.getenv("COMPUTE_DEVICE", "cpu") != "cpu"
-    llm = LlamaCpp(
-        model_path=path,
-        **{
-            "n_gpu_layers": (0, -1)[is_gpu],
-            **model_config["loader_config"],
-        },
-    )
+    compute_device = os.getenv("COMPUTE_DEVICE", "cuda")
+    try:
+        llm = LlamaCpp(
+            model_path=path,
+            **{
+                "n_gpu_layers": (0, -1)[compute_device != "cpu"],
+                **model_config["loader_config"],
+            },
+        )
+    except Exception as e:
+        print(f"Failed to load model '{path}' with compute device '{compute_device}'")
+        raise e
+
     prompt = PromptTemplate.from_template(model_config['prompt'])
 
     return LLMChain(llm=llm, prompt=prompt)
