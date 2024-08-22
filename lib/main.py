@@ -2,7 +2,7 @@
 """
 
 import threading
-from contextlib import asynccontextmanager, suppress
+from contextlib import asynccontextmanager
 from time import perf_counter, sleep
 
 import httpx
@@ -20,7 +20,7 @@ chains = generate_chains()
 async def lifespan(_app: FastAPI):
     set_handlers(
         APP,
-        enabled_handler,
+        enabled_handler, # type: ignore
     )
     t = BackgroundProcessTask()
     t.start()
@@ -45,7 +45,7 @@ class BackgroundProcessTask(threading.Thread):
             try:
                 enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
                 if not enabled_flag:
-                    sleep(5)
+                    sleep(10)
                     continue
 
                 response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
@@ -104,20 +104,13 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
         for chain_name, _ in chains.items():
             (model, task) = chain_name.split(":", 1)
             try:
-                await nc.providers.task_processing.register({
-                    "id": "llm2:" + chain_name,
-                    "name": "Local Large language Model: " + model,
-                    "task_type": task,
-                    "expected_runtime": 30,
-                    "optional_input_shape": [],
-                    "optional_output_shape": [],
-                    "input_shape_enum_values": {},
-                    "input_shape_defaults": {},
-                    "optional_input_shape_enum_values": {},
-                    "optional_input_shape_defaults": {},
-                    "output_shape_enum_values": {},
-                    "optional_output_shape_enum_values": {},
-                })
+                provider = TaskProcessingProvider(
+                    id="llm2:" + chain_name,
+                    name="Local Large language Model: " + model,
+                    task_type=task,
+                    expected_runtime=30,
+                )
+                await nc.providers.task_processing.register(provider)
                 print(f"Registering {chain_name}", flush=True)
             except Exception as e:
                 print(f"Failed to register", f"{model} - {task}", f"Error:", f"{e}\n", flush=True)
@@ -134,6 +127,7 @@ if __name__ == "__main__":
     # print(os.environ["APP_PORT"], flush=True)
     # print(os.environ["APP_SECRET"], flush=True)
     # print(os.environ["APP_VERSION"], flush=True)
+    # print(os.environ["COMPUTE_DEVICE"], flush=True)
     # print(os.environ["NEXTCLOUD_URL"], flush=True)
     # print(os.environ["APP_PERSISTENT_STORAGE"], flush=True)
     run_app("main:APP", log_level="trace")
