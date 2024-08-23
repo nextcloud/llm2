@@ -41,7 +41,7 @@ jobs:
       APP_ID: llm2
       APP_PORT: 9080
       APP_SECRET: 12345
-      COMPUTE_DEVICE: cpu
+      COMPUTE_DEVICE: CPU
       NEXTCLOUD_URL: http://localhost:8080
 
     services:

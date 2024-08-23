@@ -1,17 +1,17 @@
 """Registers all chains based on the models/ directory contents
 """
 
-import os
 import json
+import os
 
 from free_prompt import FreePromptChain
 from headline import HeadlineChain
-from topics import TopicsChain
-from summarize import SummarizeChain
-from langchain_community.llms import LlamaCpp
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+from langchain_community.llms import LlamaCpp
 from nc_py_api.ex_app import persistent_storage
+from summarize import SummarizeChain
+from topics import TopicsChain
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
@@ -46,12 +46,12 @@ def generate_llm_chain(file_name):
     if not os.path.exists(path):
         path = os.path.join(persistent_storage(), file_name)
 
-    compute_device = os.getenv("COMPUTE_DEVICE", "cuda")
+    compute_device = os.getenv("COMPUTE_DEVICE", "CUDA")
     try:
         llm = LlamaCpp(
             model_path=path,
             **{
-                "n_gpu_layers": (0, -1)[compute_device != "cpu"],
+                "n_gpu_layers": (0, -1)[compute_device != "CPU"],
                 **model_config["loader_config"],
             },
         )
