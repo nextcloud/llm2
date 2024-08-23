@@ -3,16 +3,15 @@
 
 import os
 from contextlib import asynccontextmanager
-from time import perf_counter, sleep
 from threading import Event, Thread
+from time import perf_counter, sleep
 
 import httpx
+from chains import generate_chains
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, persistent_storage, run_app, set_handlers
 from nc_py_api.ex_app.providers.task_processing import TaskProcessingProvider
-
-from chains import generate_chains
 
 models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
@@ -132,7 +131,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 print(f"Registered {chain_name}", flush=True)
                 start_bg_task()
             except Exception as e:
-                print(f"Failed to register", f"{model} - {task}", f"Error:", f"{e}\n", flush=True)
+                print(f"Failed to register {model} - {task}, Error: {e}\n", flush=True)
                 break
     else:
         for chain_name in chains:
@@ -140,7 +139,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 await nc.providers.task_processing.unregister("llm2:" + chain_name)
                 print(f"Unregistered {chain_name}", flush=True)
             except Exception as e:
-                print(f"Failed to unregister", f"{chain_name}", f"Error:", f"{e}\n", flush=True)
+                print(f"Failed to unregister {chain_name}, Error: {e}\n", flush=True)
                 break
 
         app_enabled.clear()
