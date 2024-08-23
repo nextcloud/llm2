@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [2.1.0] - 2024-08-23
+
+### Fix
+
+- compare uppercase COMPUTE_DEVICE value (#27)
+
+
 ## [2.1.0] - 2024-08-22
 
 ### Fix
