@@ -6,7 +6,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [2.1.0] - 2024-08-23
+## [2.1.2] - 2024-08-26
+
+### Fix
+
+- filename of the llama3.1 model in config
+- catch JSONDecodeError for when server is in maintenance mode
+
+### Change
+
+- better app_enabled handling
+
+
+## [2.1.1] - 2024-08-23
 
 ### Fix
 
