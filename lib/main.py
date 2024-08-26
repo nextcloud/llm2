@@ -3,6 +3,7 @@
 
 import os
 from contextlib import asynccontextmanager
+from json import JSONDecodeError
 from threading import Event, Thread
 from time import perf_counter, sleep
 
@@ -26,14 +27,10 @@ async def lifespan(_app: FastAPI):
         enabled_handler, # type: ignore
         models_to_fetch=models_to_fetch,
     )
-    try:
-        nc = NextcloudApp()
-        enabled_flag = nc.ocs("GET", "/ocs/v1.php/apps/app_api/ex-app/state")
-        if enabled_flag:
-            app_enabled.set()
-            start_bg_task()
-    except Exception as e:
-        print(f"Failed to check the enabled state on startup, background task did not start: {e}", flush=True)
+    nc = NextcloudApp()
+    if nc.enabled_state:
+        app_enabled.set()
+        start_bg_task()
     yield
 
 
@@ -60,7 +57,7 @@ def background_thread_task(chains: dict):
             if not response:
                 sleep(5)
                 continue
-        except (NextcloudException, httpx.RequestError) as e:
+        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error fetching the next task", e, flush=True)
             sleep(5)
             continue
@@ -90,7 +87,7 @@ def background_thread_task(chains: dict):
                 task["id"],
                 {"output": str(result)},
             )
-        except (NextcloudException, httpx.RequestError) as e:
+        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error:", e, flush=True)
             sleep(5)
         except Exception as e:  # noqa
@@ -106,7 +103,6 @@ def background_thread_task(chains: dict):
 
 
 def start_bg_task():
-    app_enabled.set()
     t = Thread(target=background_thread_task, args=(generate_chains(),))
     t.start()
 
@@ -129,11 +125,13 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 )
                 await nc.providers.task_processing.register(provider)
                 print(f"Registered {chain_name}", flush=True)
+                app_enabled.set()
                 start_bg_task()
             except Exception as e:
                 print(f"Failed to register {model} - {task}, Error: {e}\n", flush=True)
                 break
     else:
+        app_enabled.clear()
         for chain_name in chains:
             try:
                 await nc.providers.task_processing.unregister("llm2:" + chain_name)
@@ -141,8 +139,6 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
             except Exception as e:
                 print(f"Failed to unregister {chain_name}, Error: {e}\n", flush=True)
                 break
-
-        app_enabled.clear()
 
     return ""
 
