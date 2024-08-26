@@ -3,6 +3,7 @@
 
 import os
 from contextlib import asynccontextmanager
+from json import JSONDecodeError
 from threading import Event, Thread
 from time import perf_counter, sleep
 
@@ -60,7 +61,7 @@ def background_thread_task(chains: dict):
             if not response:
                 sleep(5)
                 continue
-        except (NextcloudException, httpx.RequestError) as e:
+        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error fetching the next task", e, flush=True)
             sleep(5)
             continue
@@ -90,7 +91,7 @@ def background_thread_task(chains: dict):
                 task["id"],
                 {"output": str(result)},
             )
-        except (NextcloudException, httpx.RequestError) as e:
+        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error:", e, flush=True)
             sleep(5)
         except Exception as e:  # noqa
