@@ -43,8 +43,8 @@
     "Meta-Llama-3.1-8B-Instruct-Q4_K_M": {
         "prompt": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n{user_prompt}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n",
         "loader_config": {
-            "n_ctx": 128000,
-            "max_tokens": 60000,
+            "n_ctx": 16384,
+            "max_tokens": 8196,
             "stop": ["<|eot_id|>"],
             "temperature": 0.3
         }
