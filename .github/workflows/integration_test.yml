@@ -115,7 +115,7 @@ jobs:
           sleep 25
           mkdir data
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$PGSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
-          php -S localhost:8080 &
+          composer run serve
 
       - name: Enable app and app_api
         run: ./occ app:enable -vvv -f app_api
@@ -147,18 +147,24 @@ jobs:
           ./occ app_api:app:register llm2 manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"${{ fromJson(steps.appinfo.outputs.result).version }}\",\"secret\":\"12345\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\", \"TASK_PROCESSING\"],\"system_app\":0}" --force-scopes --wait-finish
 
       - name: Run task
+        env:
+          CREDS: "admin:password"
         run: |
-          TASK_ID=$(curl -f -X POST -u "admin:password" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Hello World"},"type":"core:text2text", "appId": "test", "customId": ""}' | jq '.ocs.data.task.id')
+          set -x
+          TASK=$(curl -v -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Hello World"},"type":"core:text2text", "appId": "test", "customId": ""}')
+          echo $TASK
+          TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
           NEXT_WAIT_TIME=0
-          TASK_STATUS="STATUS_SCHEDULED"
-          until [ $NEXT_WAIT_TIME -eq 25 ] || [ "$TASK_STATUS" == "STATUS_SUCCESSFUL" ] || [ "$TASK_STATUS" == "STATUS_FAILED" ]; do
-              TASK=$(curl -f -u "admin:password" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
-              echo $TASK
-              TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
-              sleep $(( NEXT_WAIT_TIME++ ))
+          TASK_STATUS='"STATUS_SCHEDULED"'
+          until [ $NEXT_WAIT_TIME -eq 25 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+            TASK=$(curl -v -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
+            echo $TASK
+            TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
+            echo $TASK_STATUS
+            sleep $(( NEXT_WAIT_TIME++ ))
           done
-          curl -u "admin:password" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json
-          [ "$TASK_STATUS" == "STATUS_SUCCESSFUL" ]
+          curl -v -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json
+          [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
 
       - name: Show logs
         if: always()
