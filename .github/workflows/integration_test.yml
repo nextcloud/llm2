@@ -107,7 +107,7 @@ jobs:
           sleep 25
           mkdir data
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$MYSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
-          php -S localhost:8080 &
+          composer run serve &
 
       - name: Set up Nextcloud
         if: ${{ matrix.databases == 'pgsql'}}
@@ -115,7 +115,7 @@ jobs:
           sleep 25
           mkdir data
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$PGSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
-          composer run serve
+          composer run serve &
 
       - name: Enable app and app_api
         run: ./occ app:enable -vvv -f app_api
