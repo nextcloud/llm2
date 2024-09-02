@@ -28,7 +28,7 @@ jobs:
       matrix:
         php-versions: [ '8.1' ]
         databases: [ 'sqlite' ]
-        server-versions: [ 'master' ]
+        server-versions: [ 'master', 'stable30' ]
 
     name: Integration test on ☁️${{ matrix.server-versions }} 🐘${{ matrix.php-versions }}
 
@@ -107,7 +107,7 @@ jobs:
           sleep 25
           mkdir data
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$MYSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
-          php -S localhost:8080 &
+          composer run serve &
 
       - name: Set up Nextcloud
         if: ${{ matrix.databases == 'pgsql'}}
@@ -115,7 +115,7 @@ jobs:
           sleep 25
           mkdir data
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$PGSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
-          php -S localhost:8080 &
+          composer run serve &
 
       - name: Enable app and app_api
         run: ./occ app:enable -vvv -f app_api
@@ -145,6 +145,27 @@ jobs:
         run: |
           ./occ app_api:daemon:register --net host manual_install "Manual Install" manual-install http localhost http://localhost:8080
           ./occ app_api:app:register llm2 manual_install --json-info "{\"appid\":\"llm2\",\"name\":\"Local large language model\",\"daemon_config_name\":\"manual_install\",\"version\":\"${{ fromJson(steps.appinfo.outputs.result).version }}\",\"secret\":\"12345\",\"port\":9080,\"scopes\":[\"AI_PROVIDERS\", \"TASK_PROCESSING\"],\"system_app\":0}" --force-scopes --wait-finish
+
+      - name: Run task
+        env:
+          CREDS: "admin:password"
+        run: |
+          set -x
+          sleep 300
+          TASK=$(curl -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Hello World"},"type":"core:text2text", "appId": "test", "customId": ""}')
+          echo $TASK
+          TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
+          NEXT_WAIT_TIME=0
+          TASK_STATUS='"STATUS_SCHEDULED"'
+          until [ $NEXT_WAIT_TIME -eq 25 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+            TASK=$(curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
+            echo $TASK
+            TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
+            echo $TASK_STATUS
+            sleep $(( NEXT_WAIT_TIME++ ))
+          done
+          curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json
+          [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
 
       - name: Show logs
         if: always()
