@@ -1,6 +1,5 @@
 [tool.poetry]
 name = "llm2"
-version = "2.1.2"
 description = ""
 authors = ["Marcel Klehr <mklehr@gmx.net>"]
 license = "AGPL-3.0"
