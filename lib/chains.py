@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Registers all chains based on the models/ directory contents
 """
 
