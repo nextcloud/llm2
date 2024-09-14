@@ -1,4 +1,10 @@
+<!--
+  - SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+  - SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 # Nextcloud Local Large Language Model
+
+[![REUSE status](https://api.reuse.software/badge/github.com/nextcloud/llm2)](https://api.reuse.software/info/github.com/nextcloud/llm2)
 
 ## Installation
 See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_manual/ai/index.html)
