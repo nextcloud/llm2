@@ -22,6 +22,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 	<website>https://github.com/nextcloud/llm2</website>
 	<bugs>https://github.com/nextcloud/llm2/issues</bugs>
 	<repository type="git">https://github.com/nextcloud/llm2</repository>
+	<screenshot>https://raw.githubusercontent.com/nextcloud/llm2/main/img/Logo.png</screenshot>
 	<dependencies>
 		<nextcloud min-version="30" max-version="31"/>
 	</dependencies>
