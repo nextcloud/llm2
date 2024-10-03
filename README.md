@@ -6,6 +6,8 @@
 
 [![REUSE status](https://api.reuse.software/badge/github.com/nextcloud/llm2)](https://api.reuse.software/info/github.com/nextcloud/llm2)
 
+![](https://raw.githubusercontent.com/nextcloud/llm2/main/img/Logo.png)
+
 ## Installation
 See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_manual/ai/index.html)
 

@@ -10,3 +10,8 @@ path = ["default_config/config.json", "poetry.lock"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2024 Nextcloud GmbH and Nextcloud contributors"
 SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["img/*"]
+SPDX-FileCopyrightText = "2018-2024 Google LLC"
+SPDX-License-Identifier = "Apache-2.0"
