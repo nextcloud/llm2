@@ -97,9 +97,11 @@ jobs:
 
       - name: Checkout AppAPI
         uses: actions/checkout@v4
+        if: ${{ matrix.server-versions == 'stable30' }}
         with:
           repository: cloud-py-api/app_api
           path: apps/app_api
+          ref: v3.2.1
 
       - name: Set up Nextcloud
         if: ${{ matrix.databases != 'pgsql'}}
