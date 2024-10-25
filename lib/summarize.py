@@ -36,6 +36,7 @@ Here is your summary in the same language as the text:
 
 
     llm_chain: LLMChain
+    chunk_size: int = 8000
     output_key: str = "text"  #: :meta private:
 
     class Config:
@@ -72,7 +73,7 @@ Here is your summary in the same language as the text:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
         text_splitter = CharacterTextSplitter(
-            separator='\n\n|\\.|\\?|\\!', chunk_size=8000, chunk_overlap=0, keep_separator=True)
+            separator='\n\n|\\.|\\?|\\!', chunk_size=self.chunk_size, chunk_overlap=0, keep_separator=True)
         texts = text_splitter.split_text(inputs['input'])
         while sum([len(text) for text in texts]) > max(len(inputs['input']) * 0.2, 1000):  # 2000 chars summary per 10.000 chars original text
             docs = [texts[i:i + 3] for i in range(0, len(texts), 3)]
