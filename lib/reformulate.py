@@ -40,6 +40,7 @@ Output only the new text without quotes, nothing else, no introductory or explan
 
     """Prompt object to use."""
     llm_chain: LLMChain
+    chunk_size: int = 8000
     output_key: str = "text"  #: :meta private:
 
     class Config:
@@ -76,7 +77,7 @@ Output only the new text without quotes, nothing else, no introductory or explan
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
         text_splitter = CharacterTextSplitter(
-            separator='\n\n|\\.|\\?|\\!', chunk_size=8000, chunk_overlap=0, keep_separator=True)
+            separator='\n\n|\\.|\\?|\\!', chunk_size=self.chunk_size, chunk_overlap=0, keep_separator=True)
         texts = text_splitter.split_text(inputs['input'])
         outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=t), "system_prompt": self.system_prompt} for t in texts])
         texts = [output['text'] for output in outputs]
