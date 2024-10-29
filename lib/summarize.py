@@ -36,7 +36,7 @@ Here is your summary in the same language as the text:
 
 
     llm_chain: LLMChain
-    chunk_size: int = 8000
+    n_ctx: int = 8000
     output_key: str = "text"  #: :meta private:
 
     class Config:
@@ -71,11 +71,14 @@ Here is your summary in the same language as the text:
             raise ValueError("llm_chain must have input_keys ['user_prompt', 'system_prompt']")
         if not self.llm_chain.output_keys == [self.output_key]:
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
-        
+
+        summary_size = max(len(inputs['input']) * 0.2, 1000)  # 2000 chars summary per 10.000 chars original text
+        chunk_size = max(self.n_ctx - summary_size, 2048)
+
         text_splitter = CharacterTextSplitter(
-            separator='\n\n|\\.|\\?|\\!', chunk_size=self.chunk_size, chunk_overlap=0, keep_separator=True)
+            separator='\n\n|\\.|\\?|\\!', chunk_size=chunk_size, chunk_overlap=0, keep_separator=True)
         texts = text_splitter.split_text(inputs['input'])
-        while sum([len(text) for text in texts]) > max(len(inputs['input']) * 0.2, 1000):  # 2000 chars summary per 10.000 chars original text
+        while sum([len(text) for text in texts]) > summary_size:
             docs = [texts[i:i + 3] for i in range(0, len(texts), 3)]
             outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=''.join(doc)), "system_prompt": self.system_prompt} for doc in docs])
             texts = [output[self.output_key] for output in outputs]

@@ -84,12 +84,12 @@ def generate_chains():
 def generate_chain_for_model(file_name, chains):
     model_name = file_name.split('.gguf')[0]
     n_ctx = get_model_config(file_name)["loader_config"]["n_ctx"]
-    chunk_size = int(ceil(0.7 * n_ctx))
+    # chunk_size = int(ceil(0.7 * n_ctx))
 
     chain = [None]
     llm_chain = lambda:  chain[-1] if chain[-1] is not None else chain.append(generate_llm_chain(file_name)) or chain[-1]
 
-    chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain(), chunk_size=chunk_size)
+    chains[model_name + ":core:text2text:summary"] = lambda: SummarizeChain(llm_chain=llm_chain(), n_ctx=n_ctx)
     chains[model_name + ":core:text2text:headline"] = lambda: HeadlineChain(llm_chain=llm_chain())
     chains[model_name + ":core:text2text:topics"] = lambda: TopicsChain(llm_chain=llm_chain())
     # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain(), chunk_size=chunk_size)
