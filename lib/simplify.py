@@ -37,6 +37,7 @@ Output only the new, rewritten text without quotes, nothing else. Do not mention
     # Multilingual output doesn't work with llama3.1
 
     llm_chain: LLMChain
+    chunk_size: int = 8000
     output_key: str = "text"  #: :meta private:
 
     class Config:
@@ -72,7 +73,7 @@ Output only the new, rewritten text without quotes, nothing else. Do not mention
             raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
         
         text_splitter = CharacterTextSplitter(
-            separator="\n\n|\\.|\\?|\\!", chunk_size=8000, chunk_overlap=0, keep_separator=True
+            separator="\n\n|\\.|\\?|\\!", chunk_size=self.chunk_size, chunk_overlap=0, keep_separator=True
         )
         texts = text_splitter.split_text(inputs["input"])
         outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=t), "system_prompt": self.system_prompt} for t in texts])
