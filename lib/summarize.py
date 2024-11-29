@@ -78,10 +78,12 @@ Here is your summary in the same language as the text:
         text_splitter = CharacterTextSplitter(
             separator='\n\n|\\.|\\?|\\!', chunk_size=chunk_size, chunk_overlap=0, keep_separator=True)
         texts = text_splitter.split_text(inputs['input'])
-        while sum([len(text) for text in texts]) > summary_size:
+        i = 0
+        while i == 0 or sum([len(text) for text in texts]) > summary_size:
             docs = [texts[i:i + 3] for i in range(0, len(texts), 3)]
             outputs = self.llm_chain.apply([{"user_prompt": self.user_prompt.format_prompt(text=''.join(doc)), "system_prompt": self.system_prompt} for doc in docs])
             texts = [output[self.output_key] for output in outputs]
+            i += 1
 
         return {self.output_key: '\n\n'.join(texts)}
 
