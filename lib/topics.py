@@ -3,75 +3,38 @@
 """A chain that extracts topcis from a text
 """
 
-from typing import Any, Optional
+from typing import Any
 
-from langchain.base_language import BaseLanguageModel
-from langchain.callbacks.manager import CallbackManagerForChainRun
-from langchain.chains.base import Chain
-from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
+from langchain_core.runnables import Runnable
 
+class TopicsProcessor():
 
+    runnable: Runnable
 
-class TopicsChain(Chain):
     """
     A topics chain
     """
-    system_prompt = "You're an AI assistant tasked with finding the topic keywords of the text given to you by the user."
+    system_prompt: str = "You're an AI assistant tasked with finding the topic keywords of the text given to you by the user."
     user_prompt: BasePromptTemplate = PromptTemplate(
-        input_variables=["text"],
-        template="""
-Find a maximum of 5 topics keywords for the following text:
-
-"
-{text}
-"
-
-List 5 topics of the above text as keywords separated by commas. Output only the topics, nothing else, no introductory sentence. Use the same language for the topics as the text.
-        """
+            input_variables=["text"],
+            template="""
+    Find a maximum of 5 topics keywords for the following text:
+    
+    "
+    {text}
+    "
+    
+    List 5 topics of the above text as keywords separated by commas. Output only the topics, nothing else, no introductory sentence. Use the same language for the topics as the text.
+    """
     )
 
+    def __init__(self, runnable: Runnable):
+        self.runnable = runnable
 
-    """Prompt object to use."""
-    llm_chain: LLMChain
-    output_key: str = "text"  #: :meta private:
 
-    class Config:
-        """Configuration for this pydantic object."""
-
-        extra = 'forbid'
-        arbitrary_types_allowed = True
-
-    @property
-    def input_keys(self) -> list[str]:
-        """Will be whatever keys the prompt expects.
-
-        :meta private:
-        """
-        return ['input']
-
-    @property
-    def output_keys(self) -> list[str]:
-        """Will always return text key.
-
-        :meta private:
-        """
-        return [self.output_key]
-
-    def _call(
-            self,
-            inputs: dict[str, Any],
-            run_manager: Optional[CallbackManagerForChainRun] = None,
-    ) -> dict[str, str]:
-        
-        if not {"user_prompt", "system_prompt"} == set(self.llm_chain.input_keys):
-            raise ValueError("llm_chain must have input_keys ['user_prompt', 'system_prompt']")
-        if not self.llm_chain.output_keys == [self.output_key]:
-            raise ValueError(f"llm_chain must have output_keys [{self.output_key}]")
-        
-        return self.llm_chain.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
-
-    @property
-    def _chain_type(self) -> str:
-        return "simplify_chain"
+    def __call__(self, inputs: dict[str,Any],
+        ) -> dict[str, Any]:
+            output = self.runnable.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
+            return {'output': output}
