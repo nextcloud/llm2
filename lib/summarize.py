@@ -16,7 +16,7 @@ class SummarizeProcessor:
     A summarization chain
     """
 
-    system_prompt: str = "You're an AI assistant tasked with summarizing the text given to you by the user."
+    system_prompt: str = "You're an AI assistant tasked with summarizing the text given to you by the user. If it's a long text, use bullet points to summarize. If the text is consisting of bullet points, also use bullet points to summarize."
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
