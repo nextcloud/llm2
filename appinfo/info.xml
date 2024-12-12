@@ -13,7 +13,7 @@
 
 See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_manual/ai/index.html) for more information.
 	]]></description>
-	<version>2.1.4</version>
+	<version>2.2.0</version>
 	<licence>MIT</licence>
 	<author mail="mklehr@gmx.net" homepage="https://github.com/marcelklehr">Marcel Klehr</author>
 	<author mail="bigcat88@icloud.com" homepage="https://github.com/bigcat88">Alexander Piskun</author>
@@ -30,7 +30,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 		<docker-install>
 			<registry>ghcr.io</registry>
 			<image>nextcloud/llm2</image>
-			<image-tag>2.1.4</image-tag>
+			<image-tag>2.2.0</image-tag>
 		</docker-install>
 		<scopes>
 			<value>AI_PROVIDERS</value>

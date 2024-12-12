@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.0] -2024-12-12
+
+### New
+
+enh(summarize): Try to make it use bulleted lists for longer texts
+enh: Implement chatwithtools task type
+feat: Use chunking if the text doesn't fit the context
+
+### Fixed
+
+fix(summarize): Use a better algorithm for chunked summaries
+fix(summarize): Always summarize at least once
+fix(ci): app_api is pre-installed from NC 31 (#37) Anupam Kumar* 03.10.24, 14:13
 
 ## [2.1.4] - 2024-09-12
 
