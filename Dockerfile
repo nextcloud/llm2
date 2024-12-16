@@ -5,6 +5,7 @@ FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update
+RUN apt-get update --fix-missing
 RUN apt install -y pipx build-essential git vim
 RUN pipx install poetry
 
