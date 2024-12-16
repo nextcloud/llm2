@@ -16,7 +16,7 @@ from nc_py_api.ex_app import persistent_storage
 from chat import ChatProcessor
 from free_prompt import FreePromptProcessor
 from headline import HeadlineProcessor
-from lib.chatwithtools import ChatWithToolsProcessor
+from chatwithtools import ChatWithToolsProcessor
 from topics import TopicsProcessor
 from summarize import SummarizeProcessor
 
