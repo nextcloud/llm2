@@ -9,7 +9,6 @@ from typing import Any
 
 from langchain_community.chat_models import ChatLlamaCpp
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
-from langchain_core.runnables import Runnable
 from langchain_core.messages.ai import AIMessage
 
 

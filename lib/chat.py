@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """A chat chain
 """
-
+import json
 from typing import Any, Optional
 
 from langchain.callbacks.manager import CallbackManagerForChainRun
@@ -26,5 +26,5 @@ class ChatProcessor:
             inputs: dict[str, Any],
     ) -> dict[str, str]:
         return {'output': self.runnable.invoke(
-            [('human', message) if i % 2 else ('assistant', message) for i, message in enumerate(inputs['history'])] + [('human', inputs['input'])]
+            [(message.role, message.content) for message in [json.loads(message) for message in inputs['history']]] + [('human', inputs['input'])]
         ).content}
