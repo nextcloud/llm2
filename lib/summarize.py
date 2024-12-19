@@ -16,17 +16,17 @@ class SummarizeProcessor:
     A summarization chain
     """
 
-    system_prompt: str = "You're an AI assistant tasked with summarizing the text given to you by the user. If it's a long text, use bullet points to summarize. If the text is consisting of bullet points, also use bullet points to summarize."
+    system_prompt: str = "You're an AI assistant tasked with summarizing the text given to you by the user. Use a bullet list to summarize. Make sure to cover all topics of the text in your summary. Output only the summary without quotes, nothing else, especially no introductory or explanatory text."
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
         template="""
 Summarize the following text. Detect the language of the text. Use the same language as the one you detected. Here is the text:
 
-"
+---
 {text}
-"
+---
 
-Output only the summary without quotes, nothing else, especially no introductory or explanatory text. Also, do not mention the language you used explicitly.
+ Also, do not mention the language you used explicitly.
 Here is your summary in the same language as the original text:
         """
     )
