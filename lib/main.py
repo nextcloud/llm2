@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Tha main module of the llm2 app
+"""
+The main module of the llm2 app
 """
 
 import os
@@ -32,7 +33,7 @@ async def lifespan(_app: FastAPI):
     nc = NextcloudApp()
     if nc.enabled_state:
         app_enabled.set()
-        start_bg_task()
+    start_bg_task()
     yield
 
 
@@ -127,7 +128,6 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 await nc.providers.task_processing.register(provider)
                 print(f"Registered {task_processor_name}", flush=True)
                 app_enabled.set()
-                start_bg_task()
             except Exception as e:
                 print(f"Failed to register {model} - {task}, Error: {e}\n", flush=True)
                 break
