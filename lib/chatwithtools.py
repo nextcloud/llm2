@@ -69,8 +69,9 @@ class ChatWithToolsProcessor:
         messages.append(HumanMessage(content=inputs['input']))
 
         try:
-            tool_message = json.loads(inputs['tool_message'])
-            messages.append(ToolMessage(content=tool_message['content'], name=tool_message['name'], tool_call_id='42'))
+            tool_messages = json.loads(inputs['tool_message'])
+            for tool_message in tool_messages:
+                messages.append(ToolMessage(content=tool_message['content'], name=tool_message['name'], tool_call_id='42'))
         except:
             pass
 
