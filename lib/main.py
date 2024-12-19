@@ -52,8 +52,8 @@ def background_thread_task(task_processors: dict):
 
     while True:
         if not app_enabled.is_set():
-            sleep(5)
-            break
+            sleep(30)
+            continue
 
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
@@ -84,7 +84,7 @@ def background_thread_task(task_processors: dict):
             result = task_processor(task.get("input"))
             print(f"reply generated: {round(float(perf_counter() - time_start), 2)}s", flush=True)
             print(result, flush=True)
-            NextcloudApp().providers.task_processing.report_result(
+            nc.providers.task_processing.report_result(
                 task["id"],
                 result,
             )
@@ -94,7 +94,6 @@ def background_thread_task(task_processors: dict):
         except Exception as e:  # noqa
             print("Error:", e, flush=True)
             try:
-                nc = NextcloudApp()
                 nc.log(LogLvl.ERROR, str(e))
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, httpx.RequestError) as net_err:
