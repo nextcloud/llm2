@@ -9,6 +9,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.2] - 2024-12-20
+
+### Fixed
+
+* fix(chatwithtools): Expect a list of tool messages
+* fix(main): Don't drop background task when app is disabled
+* fix: Only run background thread once
+* fix(summarize): Improve prompt
+* fix(chat): Expect json-stringified messages in history {role, content}
+
 ## [2.2.1] - 2024-12-16
 
 ### Fixed
