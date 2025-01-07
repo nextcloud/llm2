@@ -17,6 +17,7 @@ from chat import ChatProcessor
 from free_prompt import FreePromptProcessor
 from headline import HeadlineProcessor
 from proofread import ProofreadProcessor
+from change_tone import ChangeToneProcessor
 from chatwithtools import ChatWithToolsProcessor
 from topics import TopicsProcessor
 from summarize import SummarizeProcessor
@@ -134,6 +135,7 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_llm_chain(file_name))
     task_processors[model_name + ":core:text2text:chat"] = lambda: ChatProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_llm_chain(file_name))
+    task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_llm_chain(file_name))
     task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_chain(file_name))
     
     # chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())

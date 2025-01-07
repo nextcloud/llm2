@@ -15,7 +15,7 @@ from task_processors import generate_task_processors
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, persistent_storage, run_app, set_handlers
-from nc_py_api.ex_app.providers.task_processing import TaskProcessingProvider
+from nc_py_api.ex_app.providers.task_processing import TaskProcessingProvider, ShapeEnumValue
 
 models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
@@ -123,6 +123,15 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                     name="Local Large language Model: " + model,
                     task_type=task,
                     expected_runtime=30,
+                     input_shape_enum_values= {
+                            "tone": [
+                                ShapeEnumValue(name= "Friendlier", value= "friendlier"),
+                                ShapeEnumValue(name= "More formal", value= "more formal"),
+                                ShapeEnumValue(name= "Funnier", value= "funnier"),
+                                ShapeEnumValue(name= "More casual", value= "more casual"),
+                                ShapeEnumValue(name= "More urgent", value= "more urgent"),
+                            ],
+                        } if task == "core:text2text:changetone" else {}
                 )
                 await nc.providers.task_processing.register(provider)
                 print(f"Registered {task_processor_name}", flush=True)
