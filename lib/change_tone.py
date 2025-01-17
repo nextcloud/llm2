@@ -19,15 +19,14 @@ class ChangeToneProcessor():
     system_prompt: str = "You're an AI assistant tasked with rewriting the text given to you by the user in another tone."
     user_prompt: BasePromptTemplate = PromptTemplate(
             input_variables=["text", "tone"],
-            template="""
-    Reformulate the following text in a " {tone} " tone in its original language. Output only the reformulation. Here is the text:
-    
-    "
-    {text}
-    "
-    
-    Output only the reformulated text, nothing else, no introductory sentence. Use the same language as the original text.
-    """
+            template="""Reformulate the following text in a " {tone} " tone in its original language without mentioning the language. Output only the reformulation, nothing else, no introductory sentence. Here is the text:
+
+"
+{text}
+"
+
+Output only the reformulated text, nothing else. Do not add an introductory sentence.
+"""
     )
 
     def __init__(self, runnable: Runnable):
