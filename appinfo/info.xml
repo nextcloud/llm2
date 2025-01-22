@@ -9,7 +9,7 @@
 	<summary>Local large language model</summary>
 	<description>
 	<![CDATA[
-**Requires [`AppAPI`](https://github.com/cloud-py-api/app_api) to work.**
+**Requires [`AppAPI`](https://github.com/nextcloud/app_api) to work.**
 
 See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_manual/ai/index.html) for more information.
 	]]></description>
