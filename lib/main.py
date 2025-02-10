@@ -28,7 +28,7 @@ async def lifespan(_app: FastAPI):
     set_handlers(
         APP,
         enabled_handler, # type: ignore
-        #models_to_fetch=models_to_fetch,
+        models_to_fetch=models_to_fetch,
     )
     nc = NextcloudApp()
     if nc.enabled_state:

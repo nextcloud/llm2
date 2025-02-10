@@ -7,14 +7,15 @@ from typing import Any
 
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
-class ChangeToneProcessor():
+class ChangeToneProcessor:
 
     runnable: Runnable
 
     """
-    A topics chain
+    A change tone processor
     """
     system_prompt: str = "You're an AI assistant tasked with rewriting the text given to you by the user in another tone."
     user_prompt: BasePromptTemplate = PromptTemplate(
@@ -32,8 +33,10 @@ Output only the reformulated text, nothing else. Do not add an introductory sent
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-
-    def __call__(self, inputs: dict[str,Any],
-        ) -> dict[str, Any]:
-            output = self.runnable.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input'], tone=inputs['tone']), "system_prompt": self.system_prompt})
-            return {'output': output}
+    def __call__(self, input_data: dict) -> dict[str, Any]:
+        """Process a single input"""
+        messages = [
+            SystemMessage(content=self.system_prompt),
+            HumanMessage(content=self.user_prompt.format_prompt(text=input_data['input'], tone=input_data['tone']).to_string())
+        ]
+        return {'output':self.runnable.invoke(messages).content }

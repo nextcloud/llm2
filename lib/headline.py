@@ -6,6 +6,7 @@
 from typing import Any
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import Runnable
 
 
@@ -32,9 +33,12 @@ Give me the headline of the above text in its original language. Do not output t
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(
-            self,
-            inputs: dict[str, Any],
-    ) -> dict[str, Any]:
-        output = self.runnable.invoke({"user_prompt": self.user_prompt.format_prompt(text=inputs['input']), "system_prompt": self.system_prompt})
-        return {'output': output}
+    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
+        messages = [
+            SystemMessage(content=self.system_prompt),
+            HumanMessage(content=self.user_prompt.format(
+                input=inputs['input']
+            ))
+        ]
+        output = self.runnable.invoke(messages)
+        return {'output': output.content}
