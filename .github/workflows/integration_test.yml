@@ -141,7 +141,7 @@ jobs:
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
-          poetry run python3 main.py > backend_logs 2>&1 &
+          poetry run python3 main.py > ../backend_logs 2>&1 &
 
       - name: Register backend
         run: |
