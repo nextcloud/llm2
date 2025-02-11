@@ -16,9 +16,9 @@ from nc_py_api.ex_app import persistent_storage
 from chat import ChatProcessor
 from free_prompt import FreePromptProcessor
 from headline import HeadlineProcessor
-from lib.contextwrite import ContextWriteProcessor
-from lib.reformulate import ReformulateProcessor
-from lib.simplify import SimplifyProcessor
+from contextwrite import ContextWriteProcessor
+from reformulate import ReformulateProcessor
+from simplify import SimplifyProcessor
 from proofread import ProofreadProcessor
 from change_tone import ChangeToneProcessor
 from chatwithtools import ChatWithToolsProcessor
