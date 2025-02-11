@@ -28,7 +28,7 @@ jobs:
       matrix:
         php-versions: [ '8.1' ]
         databases: [ 'sqlite' ]
-        server-versions: [ 'master', 'stable30' ]
+        server-versions: [ 'master', 'stable31', 'stable30' ]
 
     name: Integration test on ☁️${{ matrix.server-versions }} 🐘${{ matrix.php-versions }}
 
@@ -141,7 +141,7 @@ jobs:
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
-          poetry run python3 main.py > backend_logs &
+          poetry run python3 main.py > backend_logs 2>&1 &
 
       - name: Register backend
         run: |
