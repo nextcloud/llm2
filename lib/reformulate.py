@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from typing import Any
 from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
