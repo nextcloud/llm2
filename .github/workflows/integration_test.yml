@@ -95,14 +95,6 @@ jobs:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
           expression: "/info/version/text()"
 
-      - name: Checkout AppAPI
-        uses: actions/checkout@v4
-        if: ${{ matrix.server-versions == 'stable30' }}
-        with:
-          repository: cloud-py-api/app_api
-          path: apps/app_api
-          ref: v3.2.1
-
       - name: Set up Nextcloud
         if: ${{ matrix.databases != 'pgsql'}}
         run: |
@@ -153,7 +145,7 @@ jobs:
           CREDS: "admin:password"
         run: |
           set -x
-          sleep 600
+          sleep 300
           TASK=$(curl -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Hello World"},"type":"core:text2text", "appId": "test", "customId": ""}')
           echo $TASK
           TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
