@@ -74,7 +74,7 @@ def background_thread_task(task_processors: dict):
                 sleep(5)
                 continue
         except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
-            log(nc, LogLvl.ERROR, "Network error fetching the next task", e)
+            log(nc, LogLvl.ERROR, f"Network error fetching the next task {e}")
             sleep(5)
             continue
 
