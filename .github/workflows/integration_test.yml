@@ -153,7 +153,7 @@ jobs:
           CREDS: "admin:password"
         run: |
           set -x
-          sleep 300
+          sleep 600
           TASK=$(curl -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Hello World"},"type":"core:text2text", "appId": "test", "customId": ""}')
           echo $TASK
           TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
