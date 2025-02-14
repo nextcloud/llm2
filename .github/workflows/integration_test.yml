@@ -159,7 +159,7 @@ jobs:
           TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
           NEXT_WAIT_TIME=0
           TASK_STATUS='"STATUS_SCHEDULED"'
-          until [ $NEXT_WAIT_TIME -eq 25 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+          until [ $NEXT_WAIT_TIME -eq 35 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
             TASK=$(curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
             echo $TASK
             TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
