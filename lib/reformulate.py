@@ -16,19 +16,17 @@ class ReformulateProcessor:
 
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
-        template="""
-    Rewrite the following text and rephrase it:
-    
-    "
-    {text}
-    "
-    
-    Write the above text again and rephrase it using different words.
-    Also, Detect the language of the above text.
-    When rephrasing the text make sure to use the detected language in your rewritten text.
-    Output only the new text without quotes, nothing else, no introductory or explanatory text. Also do not explicitly mention the language you detected.
-            """
-    )
+        template="""Rewrite the following text and rephrase it:
+
+"
+{text}
+"
+
+Write the above text again and rephrase it using different words.
+Also, Detect the language of the above text.
+When rephrasing the text make sure to use the detected language in your rewritten text.
+Output only the new text without quotes, nothing else, no introductory or explanatory text. Also do not explicitly mention the language you detected.
+""")
 
     runnable: Runnable
 

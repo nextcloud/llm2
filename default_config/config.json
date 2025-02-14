@@ -55,7 +55,7 @@
             "n_ctx": 8224,
             "max_tokens": 8196,
             "stop": ["<|eot_id|>"],
-            "temperature": 0.3
+            "temperature": 0.15
         }
     },
     "olmo-2-1124-7B-instruct-Q4_K_M": {
@@ -82,7 +82,7 @@
             "n_ctx": 32768,
             "max_tokens": 2048,
             "stop": ["<|endoftext|>"],
-            "temperature": 0.15
+            "temperature": 0.3
         }
     },
     "default": {

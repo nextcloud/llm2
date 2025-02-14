@@ -35,13 +35,15 @@ Summaries to combine:
 """
     )
 
-    def __init__(self, runnable: Runnable, chunk_size):
+    def __init__(self, runnable: Runnable, n_ctx: int = 8000):
         self.runnable = runnable
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
+            separator='\n\n|\\.|\\?|\\!',
+            is_separator_regex=True,
+            chunk_size=n_ctx*4,
+            keep_separator=True,
             chunk_overlap=600,
             length_function=len,
-            is_separator_regex=False,
         )
 
     def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
