@@ -3,7 +3,7 @@
 """
 The main module of the llm2 app
 """
-
+import asyncio
 import os
 import logging
 import traceback
@@ -26,7 +26,7 @@ logger.setLevel(logging.INFO)
 def log(nc, level, content):
     logger.log((level+1)*10, content)
     try:
-        nc.log(level, content)
+        asyncio.run(nc.log(level, content))
     except:
         pass
 
