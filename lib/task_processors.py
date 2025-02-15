@@ -112,14 +112,17 @@ def generate_chat_chain(file_name):
     return llm
 
 
-def generate_task_processors():
-    task_processors = {}
+def generate_task_processors(task_processors = {}):
     for file in os.scandir(models_folder_path):
         if file.name.endswith(".gguf"):
+            if file.name.split('.gguf')[0] in task_processors:
+                continue
             generate_task_processors_for_model(file.name, task_processors)
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
+            if file.name.split('.gguf')[0] in task_processors:
+                continue
             generate_task_processors_for_model(file.name, task_processors)
 
     return task_processors

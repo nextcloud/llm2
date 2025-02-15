@@ -10,7 +10,7 @@ import traceback
 from contextlib import asynccontextmanager
 from json import JSONDecodeError
 from threading import Event, Thread
-from time import perf_counter, sleep
+from time import perf_counter, sleep, strftime
 
 import httpx
 from task_processors import generate_task_processors
@@ -53,11 +53,15 @@ async def lifespan(_app: FastAPI):
 APP = FastAPI(lifespan=lifespan)
 
 
-def background_thread_task(task_processors: dict):
+def background_thread_task():
     nc = NextcloudApp()
+
+    while not app_enabled.is_set():
+        sleep(5)
 
     provider_ids = set()
     task_type_ids = set()
+    task_processors = generate_task_processors()
     for task_processor_name, _ in task_processors.items():
         provider_ids.add("llm2:" + task_processor_name)
         (model, task) = task_processor_name.split(":", 1)
@@ -67,6 +71,17 @@ def background_thread_task(task_processors: dict):
         if not app_enabled.is_set():
             sleep(30)
             continue
+
+        current_minute = int(strftime("%M"))
+        if current_minute % 5 == 0:
+            # scan dir and load new models every 5 minutes
+            provider_ids = set()
+            task_type_ids = set()
+            task_processors = generate_task_processors(task_processors)
+            for task_processor_name, _ in task_processors.items():
+                provider_ids.add("llm2:" + task_processor_name)
+                (model, task) = task_processor_name.split(":", 1)
+                task_type_ids.add(task)
 
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
@@ -119,8 +134,7 @@ def background_thread_task(task_processors: dict):
 
 
 def start_bg_task():
-    task_processors = generate_task_processors()
-    t = Thread(target=background_thread_task, args=(task_processors,))
+    t = Thread(target=background_thread_task, args=())
     t.start()
 
 
