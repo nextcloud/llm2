@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.3.0] -2025-02-18
+
+### New
+
+* enh: Always use the chat method
+* feat: add changetone provider
+* feat: add proofread provider
+
+### Fixed
+
+* fix: Rework task_processor loading to wait until model is loaded
+
+
 ## [2.2.2] - 2024-12-20
 
 ### Fixed
