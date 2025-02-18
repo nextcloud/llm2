@@ -16,13 +16,14 @@ from nc_py_api.ex_app import persistent_storage
 from chat import ChatProcessor
 from free_prompt import FreePromptProcessor
 from headline import HeadlineProcessor
+from contextwrite import ContextWriteProcessor
+from reformulate import ReformulateProcessor
+from simplify import SimplifyProcessor
 from proofread import ProofreadProcessor
 from change_tone import ChangeToneProcessor
 from chatwithtools import ChatWithToolsProcessor
 from topics import TopicsProcessor
 from summarize import SummarizeProcessor
-
-from langchain.chains.llm import LLMChain
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
@@ -76,6 +77,7 @@ def generate_llm(file_name):
 @cache
 def generate_llm_chain(file_name):
     model_config = get_model_config(file_name)
+    print(model_config)
     llm = generate_llm(file_name)
 
     prompt = PromptTemplate.from_template(model_config['prompt'])
@@ -96,6 +98,7 @@ def generate_chat_chain(file_name):
         llm = ChatLlamaCpp(
             model_path=path,
             tool_choice=True,
+            n_batch=1,
             #model_kwargs={'chat_format': "chatml-function-calling"},
             **{
                 "n_gpu_layers": (0, -1)[compute_device != "CPU"],
@@ -109,14 +112,17 @@ def generate_chat_chain(file_name):
     return llm
 
 
-def generate_task_processors():
-    task_processors = {}
+def generate_task_processors(task_processors = {}):
     for file in os.scandir(models_folder_path):
         if file.name.endswith(".gguf"):
+            if file.name.split('.gguf')[0] in task_processors:
+                continue
             generate_task_processors_for_model(file.name, task_processors)
 
     for file in os.scandir(persistent_storage()):
         if file.name.endswith('.gguf'):
+            if file.name.split('.gguf')[0] in task_processors:
+                continue
             generate_task_processors_for_model(file.name, task_processors)
 
     return task_processors
@@ -126,16 +132,16 @@ def generate_task_processors_for_model(file_name, task_processors):
     model_name = file_name.split('.gguf')[0]
     n_ctx = get_model_config(file_name)["loader_config"]["n_ctx"]
 
-    task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_llm_chain(file_name), n_ctx)
-    task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_llm_chain(file_name))
-    task_processors[model_name + ":core:text2text:topics"] = lambda: TopicsProcessor(generate_llm_chain(file_name))
-    # chains[model_name + ":core:text2text:simplification"] = lambda: SimplifyChain(llm_chain=llm_chain(), chunk_size=chunk_size)
-    # chains[model_name + ":core:text2text:formalization"] = lambda: FormalizeChain(llm_chain=llm_chain(), chunk_size=chunk_size)
-    # chains[model_name + ":core:text2text:reformulation"] = lambda: ReformulateChain(llm_chain=llm_chain(), chunk_size=chunk_size)
-    task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_llm_chain(file_name))
+    task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_chat_chain(file_name), n_ctx)
+    task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text:topics"] = lambda: TopicsProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text:simplification"] = lambda: SimplifyProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text:reformulation"] = lambda: ReformulateProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:contextwrite"] = lambda: ContextWriteProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:chat"] = lambda: ChatProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_llm_chain(file_name))
-    task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_llm_chain(file_name))
+    task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_chain(file_name))
     
     # chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())

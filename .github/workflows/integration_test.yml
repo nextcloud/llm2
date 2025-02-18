@@ -28,7 +28,7 @@ jobs:
       matrix:
         php-versions: [ '8.1' ]
         databases: [ 'sqlite' ]
-        server-versions: [ 'master', 'stable30' ]
+        server-versions: [ 'master', 'stable31', 'stable30' ]
 
     name: Integration test on ☁️${{ matrix.server-versions }} 🐘${{ matrix.php-versions }}
 
@@ -95,14 +95,6 @@ jobs:
           filename: ${{ env.APP_NAME }}/appinfo/info.xml
           expression: "/info/version/text()"
 
-      - name: Checkout AppAPI
-        uses: actions/checkout@v4
-        if: ${{ matrix.server-versions == 'stable30' }}
-        with:
-          repository: cloud-py-api/app_api
-          path: apps/app_api
-          ref: v3.2.1
-
       - name: Set up Nextcloud
         if: ${{ matrix.databases != 'pgsql'}}
         run: |
@@ -141,7 +133,7 @@ jobs:
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
-          poetry run python3 main.py > backend_logs &
+          poetry run python3 main.py > ../backend_logs 2>&1 &
 
       - name: Register backend
         run: |
@@ -159,7 +151,7 @@ jobs:
           TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
           NEXT_WAIT_TIME=0
           TASK_STATUS='"STATUS_SCHEDULED"'
-          until [ $NEXT_WAIT_TIME -eq 25 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+          until [ $NEXT_WAIT_TIME -eq 35 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
             TASK=$(curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
             echo $TASK
             TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')

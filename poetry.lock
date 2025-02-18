@@ -939,12 +939,12 @@ langsmith-pyo3 = ["langsmith-pyo3 (>=0.1.0rc2,<0.2.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.2"
+version = "0.3.6"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.3.2.tar.gz", hash = "sha256:8fbf246a55a999f45015ed0d48f91b4ae04ae959827fac1cd6ac6ec65aed2e2f"},
+    {file = "llama_cpp_python-0.3.6.tar.gz", hash = "sha256:86e35a8888274466958e24201b856cd71c8def0ea72e14312be13da96c15c7a4"},
 ]
 
 [package.dependencies]
@@ -2400,4 +2400,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "e3da190692e572a1583d720e11f091ca1cd9e643037638d3073d24b9fbc668be"
+content-hash = "7933607735215298fa52859059da2210cfdd48a75ab922723b13644dbf665d20"

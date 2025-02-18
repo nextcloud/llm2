@@ -55,6 +55,33 @@
             "n_ctx": 8224,
             "max_tokens": 8196,
             "stop": ["<|eot_id|>"],
+            "temperature": 0.15
+        }
+    },
+    "olmo-2-1124-7B-instruct-Q4_K_M": {
+        "prompt": "<|endoftext|><|system|>\n{system_prompt}\n<|user|>\n{system_prompt}\n{user_prompt}\n<|assistant|>\n",
+        "loader_config": {
+            "n_ctx": 4096,
+            "max_tokens": 2048,
+            "stop": ["<|endoftext|>"],
+            "temperature": 0.7
+        }
+    },
+    "olmo-2-1124-13B-instruct-Q5_K_M": {
+        "prompt": "<|endoftext|><|system|>\n{system_prompt}\n<|user|>\n{system_prompt}\n{user_prompt}\n<|assistant|>\n",
+        "loader_config": {
+            "n_ctx": 4096,
+            "max_tokens": 2048,
+            "stop": ["<|endoftext|>"],
+            "temperature": 0.7
+        }
+    },
+    "Mistral-Small-24B-Instruct-2501-Q3_K_M": {
+        "prompt": "<|endoftext|><|system|>\n{system_prompt}\n<|user|>\n{system_prompt}\n{user_prompt}\n<|assistant|>\n",
+        "loader_config": {
+            "n_ctx": 32768,
+            "max_tokens": 2048,
+            "stop": ["<|endoftext|>"],
             "temperature": 0.3
         }
     },

@@ -11,8 +11,6 @@ from langchain_community.chat_models import ChatLlamaCpp
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from langchain_core.messages.ai import AIMessage
 
-
-
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
     tool_calls = []
@@ -43,42 +41,49 @@ def try_parse_tool_calls(content: str):
 
 class ChatWithToolsProcessor:
     """
-    A chat with tools processor
-    """
+	A chat with tools processor that supports batch processing
+	"""
 
     model: ChatLlamaCpp
 
     def __init__(self, runner: ChatLlamaCpp):
         self.model = runner
 
-    def __call__(
-            self,
-            inputs: dict[str, Any],
-    ) -> dict[str, str]:
-        model_with_tools = self.model.bind_tools(json.loads(inputs['tools']))
+    def _process_single_input(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        model_with_tools = self.model.bind_tools(json.loads(input_data['tools']))
 
         messages = []
-        messages.append(SystemMessage(content=inputs['system_prompt']))
-        for raw_message in inputs['history']:
+        messages.append(SystemMessage(content=input_data['system_prompt']))
+
+        for raw_message in input_data['history']:
             message = json.loads(raw_message)
             if message['role'] == 'assistant':
-                messages.append(AIMessage(content=inputs['system_prompt']))
+                messages.append(AIMessage(content=input_data['system_prompt']))
             elif message['role'] == 'human':
-                messages.append(HumanMessage(content=inputs['system_prompt']))
+                messages.append(HumanMessage(content=input_data['system_prompt']))
 
-        messages.append(HumanMessage(content=inputs['input']))
+        messages.append(HumanMessage(content=input_data['input']))
 
         try:
-            tool_messages = json.loads(inputs['tool_message'])
+            tool_messages = json.loads(input_data['tool_message'])
             for tool_message in tool_messages:
-                messages.append(ToolMessage(content=tool_message['content'], name=tool_message['name'], tool_call_id='42'))
+                messages.append(ToolMessage(
+                    content=tool_message['content'],
+                    name=tool_message['name'],
+                    tool_call_id='42'
+                ))
         except:
             pass
 
-        response = model_with_tools.invoke(
-            messages
-        )
-        print(response.content)
+        response = model_with_tools.invoke(messages)
+
         if not response.tool_calls or len(response.tool_calls) == 0:
             response = AIMessage(**try_parse_tool_calls(response.content))
-        return {'output': response.content, 'tool_calls': json.dumps(response.tool_calls)}
+
+        return {
+            'output': response.content,
+            'tool_calls': json.dumps(response.tool_calls)
+        }
+
+    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
+        return self._process_single_input(inputs)
