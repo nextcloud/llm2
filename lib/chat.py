@@ -26,5 +26,5 @@ class ChatProcessor:
             inputs: dict[str, Any],
     ) -> dict[str, str]:
         return {'output': self.runnable.invoke(
-            [(message.role, message.content) for message in [json.loads(message) for message in inputs['history']]] + [('human', inputs['input'])]
+            [(message['role'], message['content']) for message in [json.loads(message) for message in inputs['history']]] + [('human', inputs['input'])]
         ).content}
