@@ -10,7 +10,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
-## [2.3.2] -2025-02-20
+## [2.3.3] - 2025-03-06
+
+### Fixed
+
+* fix(SummarizeProcessor): Use correct signature for RecursiveCharacterTextSplitter
+* fix: Update deps
+
+## [2.3.2] - 2025-02-20
 
 ### Fixed
 
