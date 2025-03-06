@@ -38,9 +38,9 @@ Summaries to combine:
     def __init__(self, runnable: Runnable, n_ctx: int = 8000):
         self.runnable = runnable
         self.text_splitter = RecursiveCharacterTextSplitter(
-            separator='\n\n|\\.|\\?|\\!',
+            separators=['\n\n|\\.|\\?|\\!'],
             is_separator_regex=True,
-            chunk_size=n_ctx*4,
+            chunk_size=n_ctx/4,
             keep_separator=True,
             chunk_overlap=600,
             length_function=len,
