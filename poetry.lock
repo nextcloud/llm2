@@ -1285,13 +1285,13 @@ files = [
 
 [[package]]
 name = "nc-py-api"
-version = "0.16.0"
+version = "0.19.2"
 description = "Nextcloud Python Framework"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "nc_py_api-0.16.0-py3-none-any.whl", hash = "sha256:7884bd4c76fda3dce71c9a383c605d5736121f9f1f2af477effccb5b312d6017"},
-    {file = "nc_py_api-0.16.0.tar.gz", hash = "sha256:c1c4b40f7eed2c43d0cea2aa337157df5006394dc6f587875a11e3564a9f2d1f"},
+    {file = "nc_py_api-0.19.2-py3-none-any.whl", hash = "sha256:4bd5592bee3331d25098499b124e7fef466a5e537fdd2a0aab46c8cc9de81256"},
+    {file = "nc_py_api-0.19.2.tar.gz", hash = "sha256:0b60f412656d3602408e512a2c15dd34f2e9cc8ae0fa21dc78dbf71696fbf6d9"},
 ]
 
 [package.dependencies]
@@ -1299,6 +1299,7 @@ fastapi = ">=0.109.2"
 httpx = ">=0.25.2"
 pydantic = ">=2.1.1"
 python-dotenv = ">=1"
+truststore = "0.10"
 uvicorn = {version = ">=0.23.2", extras = ["standard"], optional = true, markers = "extra == \"app\""}
 xmltodict = ">=0.13"
 
@@ -1308,7 +1309,7 @@ bench = ["matplotlib", "numpy", "py-cpuinfo", "uvicorn[standard] (>=0.23.2)"]
 calendar = ["caldav (==1.3.6)"]
 dev = ["caldav (==1.3.6)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
 dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pytest", "pytest-asyncio"]
-docs = ["autodoc-pydantic (>=2.0.1)", "caldav (==1.3.6)", "sphinx (>=6.2)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-issues (>=3.0.1)", "sphinx-rtd-theme (>=1)", "uvicorn[standard] (>=0.23.2)"]
+docs = ["autodoc-pydantic (>=2.0.1)", "caldav (==1.3.6)", "sphinx (<8)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-issues (>=3.0.1)", "sphinx-rtd-theme (<3)", "uvicorn[standard] (>=0.23.2)"]
 
 [[package]]
 name = "numpy"
@@ -2064,6 +2065,17 @@ doc = ["reno", "sphinx"]
 test = ["pytest", "tornado (>=4.5)", "typeguard"]
 
 [[package]]
+name = "truststore"
+version = "0.10.0"
+description = "Verify certificates using native system trust stores"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "truststore-0.10.0-py3-none-any.whl", hash = "sha256:b3798548e421ffe2ca2a6217cca49e7a17baf40b72d86a5505dc7d701e77d15b"},
+    {file = "truststore-0.10.0.tar.gz", hash = "sha256:5da347c665714fdfbd46f738c823fe9f0d8775e41ac5fb94f325749091187896"},
+]
+
+[[package]]
 name = "typer"
 version = "0.15.2"
 description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
@@ -2583,4 +2595,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "6a0ce281daf862a8b41c8265f44613323f019c50805f129ef47cdd6d15a8c677"
+content-hash = "2fbaa18ee1a7e092ee627e420d3b63c3a2d03ccb8478f756b696fbad4524cbfe"
