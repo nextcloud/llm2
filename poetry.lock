@@ -1030,12 +1030,12 @@ pytest = ["pytest (>=7.0.0)", "rich (>=13.9.4,<14.0.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.7"
+version = "0.3.8"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "llama_cpp_python-0.3.7.tar.gz", hash = "sha256:0566a0dcc0f38005c4093309a87f67c2452449522e3e17e15cd735a62957894c"},
+    {file = "llama_cpp_python-0.3.8.tar.gz", hash = "sha256:31c91323b555c025a76a30923cead9f5695da103dd68c15cdbb4509b17f0ed77"},
 ]
 
 [package.dependencies]
