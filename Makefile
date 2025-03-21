@@ -4,7 +4,7 @@
 
 APP_ID := llm2
 APP_NAME := Local large language model
-APP_VERSION := 2.3.3
+APP_VERSION := 2.3.4
 JSON_INFO := "{\"id\":\"$(APP_ID)\",\"name\":\"$(APP_NAME)\",\"daemon_config_name\":\"manual_install\",\"version\":\"$(APP_VERSION)\",\"secret\":\"12345\",\"port\":9081}"
 
 

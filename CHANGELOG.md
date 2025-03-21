@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [2.3.4] - 2025-03-21
+
+### Fixed
+
+* fix(contextwrite): refactor prompt to work on languages other than english
+* fix: Update deps
+* fix: update cuda
+* fix: update llama-cpp-python
+
 ## [2.3.3] - 2025-03-06
 
 ### Fixed
