@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Checkout server
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           repository: nextcloud/server
           ref: ${{ matrix.server-versions }}
@@ -77,14 +77,14 @@ jobs:
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
 
       - name: Set up php ${{ matrix.php-versions }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@c541c155eee45413f5b09a52248675b1a2575231 # v2.31.1
         with:
           php-version: ${{ matrix.php-versions }}
           tools: phpunit
           extensions: mbstring, iconv, fileinfo, intl, sqlite, pdo_mysql, pdo_sqlite, pgsql, pdo_pgsql, gd, zip
 
       - name: Checkout app
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           path: ${{ env.APP_NAME }}
 
@@ -115,7 +115,7 @@ jobs:
         run: ./occ app:enable -vvv -f app_api
 
       - name: Setup python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 #v5.4.0
         with:
           python-version: '3.10'
           cache: 'pip'
