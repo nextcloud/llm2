@@ -68,7 +68,7 @@ The following is a JSON specification of the tools you can call and their parame
 """.format(
             tools=input_data['tools'],
             downstream_system_prompt=input_data['system_prompt'],
-            tool_call_example='<tool_call>{"name: "the_function_to_call", "arguments": {"param1":"the first argument", "param2":"second argument"} }</tool_call>'
+            tool_call_example='<tool_call>{"name": "the_function_to_call", "arguments": {"param1": "the first argument", "param2": "second argument"}}</tool_call>'
         )
 
         messages = []
