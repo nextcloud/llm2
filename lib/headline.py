@@ -37,7 +37,7 @@ Give me the headline of the above text in its original language. Do not output t
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format(
-                input=inputs['input']
+                text=inputs['input']
             ))
         ]
         output = self.runnable.invoke(messages)
