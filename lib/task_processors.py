@@ -97,9 +97,7 @@ def generate_chat_chain(file_name):
     try:
         llm = ChatLlamaCpp(
             model_path=path,
-            tool_choice=True,
             n_batch=1,
-            #model_kwargs={'chat_format': "chatml-function-calling"},
             **{
                 "n_gpu_layers": (0, -1)[compute_device != "CPU"],
                 **model_config["loader_config"],
