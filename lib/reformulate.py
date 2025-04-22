@@ -37,7 +37,7 @@ Output only the new text without quotes, nothing else, no introductory or explan
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format(
-                input=inputs['input']
+                text=inputs['input']
             ))
         ]
         output = self.runnable.invoke(messages)
