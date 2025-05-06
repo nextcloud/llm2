@@ -119,7 +119,7 @@ The following is a JSON specification of the tools you can call and their parame
             message = json.loads(raw_message)
             if message['role'] == 'assistant':
                 if message['content'] == '':
-                    if 'tool_calls' not in message or len(message['tool_calls']) == 0:
+                    if not message.get("tool_calls"):
                         continue
                     else:
                         messages.append(AIMessage(content=generate_tool_call(message['tool_calls'][0])))
