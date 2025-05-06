@@ -33,7 +33,7 @@ def log(nc, level, content):
         pass
 
 models_to_fetch = {
-    "https://huggingface.co/bartowski/google_gemma-3-12b-it-qat-GGUF/resolve/4597d49f0af9f0256f796f00005f61ebe8d08f2d/google_gemma-3-12b-it-qat-Q4_0.gguf": { "save_path": os.path.join(persistent_storage(), "google_gemma-3-12b-it-qat-Q4_0.gguf") },
+    "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
 }
 app_enabled = Event()
 
