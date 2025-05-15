@@ -12,6 +12,12 @@ from langchain_community.chat_models import ChatLlamaCpp
 from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
 from langchain_core.messages.ai import AIMessage
 
+def generate_tool_call(tool_call: dict):
+    content = '<tool_call>'
+    content += json.dumps({"name": tool_call['name'], "arguments": tool_call['args']})
+    content += '</tool_call>'
+    return content
+
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
     tool_calls = []
@@ -112,9 +118,10 @@ The following is a JSON specification of the tools you can call and their parame
         for raw_message in input_data['history']:
             message = json.loads(raw_message)
             if message['role'] == 'assistant':
-                if message['content'] == '':
-                    continue
-                messages.append(AIMessage(content=message['content']))
+                if message['content'] == '' and message.get("tool_calls"):
+                    messages.append(AIMessage(content=generate_tool_call(message['tool_calls'][0])))
+                else:
+                    messages.append(AIMessage(content=message['content']))
             elif message['role'] == 'human':
                 messages.append(HumanMessage(content=message['content']))
 
