@@ -118,11 +118,8 @@ The following is a JSON specification of the tools you can call and their parame
         for raw_message in input_data['history']:
             message = json.loads(raw_message)
             if message['role'] == 'assistant':
-                if message['content'] == '':
-                    if not message.get("tool_calls"):
-                        continue
-                    else:
-                        messages.append(AIMessage(content=generate_tool_call(message['tool_calls'][0])))
+                if message['content'] == '' and message.get("tool_calls"):
+                    messages.append(AIMessage(content=generate_tool_call(message['tool_calls'][0])))
                 else:
                     messages.append(AIMessage(content=message['content']))
             elif message['role'] == 'human':
