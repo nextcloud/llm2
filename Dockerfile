@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update
 RUN apt-get update --fix-missing
-RUN apt install -y pipx build-essential git vim
+RUN apt install -y pipx build-essential git vim curl
 RUN pipx install poetry
 
 # Download and install FRP client into /usr/local/bin.
