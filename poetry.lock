@@ -1061,13 +1061,13 @@ pytest = ["pytest (>=7.0.0)", "rich (>=13.9.4,<14.0.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.9"
+version = "0.3.14"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "llama_cpp_python-0.3.9.tar.gz", hash = "sha256:a3a985f558385e2f5de5b663f4e9b0817506d6af98122450142cd98e79216370"},
+    {file = "llama_cpp_python-0.3.14.tar.gz", hash = "sha256:c7ffd71685923a911206a40e972c1ec739aa21032100fdc8618316571b173507"},
 ]
 
 [package.dependencies]
@@ -2721,4 +2721,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "2130acdbc8883c515c0429985f61c9ec6ab34a3750f5fd9e69ac5f450fe3cbd8"
+content-hash = "db551933dce8727ebde61baa2bab2e4686f2c06226b7247998a665e6eb9b9c3d"
