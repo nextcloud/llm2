@@ -133,7 +133,11 @@ The following is a JSON specification of the tools you can call and their parame
                 for tool_message in tool_messages:
                     message_content = """
     The result of your tool call for the tool "{tool_name}" is the following:
+    
+    ===
     {tool_call_result}
+    ===
+    
     You can now formulate this in natural language for the user. Do not mention that you called a tool.
     """.format(tool_call_result=tool_message['content'], tool_name=tool_message['name'])
                     messages.append(HumanMessage(
