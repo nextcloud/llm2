@@ -11,7 +11,7 @@ package-mode = false
 [tool.poetry.dependencies]
 python = "^3.10"
 pydantic = "2.*"
-fastapi = "^0.111.0"
+fastapi = "^0.116.1"
 nc-py-api = {extras = ["app"], version = "0.*"}
 langchain = "^0.3.27"
 httpx = "^0.28.1"
