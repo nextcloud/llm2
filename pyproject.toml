@@ -15,7 +15,7 @@ fastapi = "^0.116.1"
 nc-py-api = {extras = ["app"], version = "0.*"}
 langchain = "^0.3.27"
 httpx = "^0.28.1"
-langchain-community = "^0.3.24"
+langchain-community = "^0.3.27"
 llama-cpp-python = "^0.3.14"
 
 
