@@ -9,6 +9,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.4.2] - 2025-08-05
+
+### Fixed
+
+- fix(chatwithtools): Try to prevent leaking prompt parts
+- fix(chatwithtools): Allow llm to see its own tool call in the chat history
+- Add curl dependency to Dockerfile
+- Update dependencies
+
 ## [2.4.1] - 2025-05-12
 
 ### Fixed
