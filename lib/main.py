@@ -12,7 +12,7 @@ from json import JSONDecodeError
 from threading import Event, Thread
 from time import perf_counter, sleep, strftime
 
-import httpx
+from niquests import HTTPError
 from task_processors import generate_task_processors
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
@@ -90,7 +90,7 @@ def background_thread_task():
             if not response:
                 sleep(5)
                 continue
-        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
+        except (NextcloudException, HTTPError, JSONDecodeError) as e:
             log(nc, LogLvl.ERROR, f"Network error fetching the next task {e}")
             sleep(5)
             continue
@@ -118,7 +118,7 @@ def background_thread_task():
                 task["id"],
                 result,
             )
-        except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
+        except (NextcloudException, HTTPError, JSONDecodeError) as e:
             # Error when reporting the result
             exception_info = traceback.format_exception(type(e), e, e.__traceback__)
             log(nc, LogLvl.ERROR, f"Error: {''.join(exception_info)}")
@@ -129,7 +129,7 @@ def background_thread_task():
             try:
                 log(nc, LogLvl.ERROR, str(e))
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
-            except (NextcloudException, httpx.RequestError) as net_err:
+            except (NextcloudException, HTTPError) as net_err:
                 log(nc, LogLvl.INFO, f"Network error in reporting the error: {net_err}")
 
             sleep(5)
