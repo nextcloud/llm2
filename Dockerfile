@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+FROM docker.io/nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -40,9 +40,9 @@ COPY --chmod=775 start.sh /
 RUN poetry install
 RUN ln -s /usr/local/cuda/compat/libcuda.so.1 /usr/lib/x86_64-linux-gnu/
 
-ADD li[b] /app/lib
-ADD model[s] /app/models
-ADD default_confi[g] /app/default_config
+ADD lib /app/lib
+ADD models /app/models
+ADD default_config /app/default_config
 
 WORKDIR /app/lib
 ENTRYPOINT ["/start.sh", "poetry", "run", "python3", "main.py"]
