@@ -21,12 +21,14 @@ help:
 	@echo " "
 	@echo "  run30             installs $(APP_NAME) for Nextcloud 30"
 	@echo "  run31             installs $(APP_NAME) for Nextcloud 31"
+	@echo "  run32             installs $(APP_NAME) for Nextcloud 32"
 	@echo "  run               installs $(APP_NAME) for Nextcloud Latest"
 	@echo " "
 	@echo "  > Commands for manual registration of ExApp($(APP_NAME) should be running!):"
 	@echo " "
 	@echo "  register30        performs registration of running $(APP_NAME) into the 'manual_install' deploy daemon."
 	@echo "  register31        performs registration of running $(APP_NAME) into the 'manual_install' deploy daemon."
+	@echo "  register32        performs registration of running $(APP_NAME) into the 'manual_install' deploy daemon."
 	@echo "  register          performs registration of running $(APP_NAME) into the 'manual_install' deploy daemon."
 
 
@@ -47,6 +49,12 @@ run31:
 	docker exec master-stable31-1 sudo -u www-data php occ app_api:app:register $(APP_ID) \
 		--info-xml https://raw.githubusercontent.com/nextcloud/$(APP_ID)/main/appinfo/info.xml
 
+.PHONY: run32
+run32:
+	docker exec master-stable32-1 sudo -u www-data php occ app_api:app:unregister $(APP_ID) --silent --force || true
+	docker exec master-stable32-1 sudo -u www-data php occ app_api:app:register $(APP_ID) \
+		--info-xml https://raw.githubusercontent.com/nextcloud/$(APP_ID)/main/appinfo/info.xml
+
 .PHONY: run
 run:
 	docker exec master-nextcloud-1 sudo -u www-data php occ app_api:app:unregister $(APP_ID) --silent --force || true
@@ -62,6 +70,11 @@ register30:
 register31:
 	docker exec master-stable31-1 sudo -u www-data php occ app_api:app:unregister $(APP_ID) --silent --force || true
 	docker exec master-stable31-1 sudo -u www-data php occ app_api:app:register $(APP_ID) manual_install --json-info $(JSON_INFO) --wait-finish
+
+.PHONY: register32
+register32:
+	docker exec master-stable32-1 sudo -u www-data php occ app_api:app:unregister $(APP_ID) --silent --force || true
+	docker exec master-stable32-1 sudo -u www-data php occ app_api:app:register $(APP_ID) manual_install --json-info $(JSON_INFO) --wait-finish
 
 .PHONY: register
 register:
