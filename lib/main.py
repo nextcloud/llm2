@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from json import JSONDecodeError
 from threading import Event, Thread
 from time import perf_counter, sleep
+import time
 
 import httpx
 from chains import generate_chains
@@ -20,6 +21,7 @@ models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
 }
 app_enabled = Event()
+trigger = Event()
 
 
 @asynccontextmanager
@@ -28,6 +30,7 @@ async def lifespan(_app: FastAPI):
         APP,
         enabled_handler, # type: ignore
         models_to_fetch=models_to_fetch,
+        trigger_handler=trigger_handler,
     )
     nc = NextcloudApp()
     if nc.enabled_state:
@@ -40,6 +43,7 @@ APP = FastAPI(lifespan=lifespan)
 
 
 def background_thread_task(chains: dict):
+    global trigger
     nc = NextcloudApp()
 
     provider_ids = set()
@@ -54,14 +58,15 @@ def background_thread_task(chains: dict):
             sleep(5)
             break
 
+        trigger.clear()
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not response:
-                sleep(5)
+                trigger.wait(timeout=30)
                 continue
         except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error fetching the next task", e, flush=True)
-            sleep(5)
+            trigger.wait(timeout=5)
             continue
 
         task = response["task"]
@@ -91,7 +96,6 @@ def background_thread_task(chains: dict):
             )
         except (NextcloudException, httpx.RequestError, JSONDecodeError) as e:
             print("Network error:", e, flush=True)
-            sleep(5)
         except Exception as e:  # noqa
             print("Error:", e, flush=True)
             try:
@@ -100,14 +104,19 @@ def background_thread_task(chains: dict):
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, httpx.RequestError) as net_err:
                 print("Network error in reporting the error:", net_err, flush=True)
-
-            sleep(5)
+        if has_more:
+            # continue with next task immediately
+            continue
+        else:
+            trigger.wait(timeout=30)
 
 
 def start_bg_task():
     t = Thread(target=background_thread_task, args=(generate_chains(),))
     t.start()
 
+def trigger_handler(providerId: str):
+    trigger.set()
 
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     global app_enabled
