@@ -24,7 +24,7 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 	<repository type="git">https://github.com/nextcloud/llm2</repository>
 	<screenshot>https://raw.githubusercontent.com/nextcloud/llm2/main/img/Logo.png</screenshot>
 	<dependencies>
-		<nextcloud min-version="30" max-version="32"/>
+		<nextcloud min-version="33" max-version="33"/>
 	</dependencies>
 	<external-app>
 		<docker-install>

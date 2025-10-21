@@ -36,7 +36,9 @@ models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
 }
 app_enabled = Event()
-
+trigger = Event()
+CHECK_INTERVAL = 5 * 60
+CHECK_INTERVAL_ON_ERROR = 10
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -44,6 +46,7 @@ async def lifespan(_app: FastAPI):
         APP,
         enabled_handler, # type: ignore
         models_to_fetch=models_to_fetch,
+        trigger_handler=trigger_handler
     )
     nc = NextcloudApp()
     if nc.enabled_state:
@@ -85,14 +88,15 @@ def background_thread_task():
                 (model, task) = task_processor_name.split(":", 1)
                 task_type_ids.add(task)
 
+        trigger.clear()
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not response:
-                sleep(5)
+                trigger.wait(timeout=CHECK_INTERVAL)
                 continue
         except (NextcloudException, RequestException, JSONDecodeError) as e:
             log(nc, LogLvl.ERROR, f"Network error fetching the next task {e}")
-            sleep(5)
+            trigger.wait(timeout=CHECK_INTERVAL_ON_ERROR)
             continue
 
         task = response["task"]
@@ -122,7 +126,6 @@ def background_thread_task():
             # Error when reporting the result
             exception_info = traceback.format_exception(type(e), e, e.__traceback__)
             log(nc, LogLvl.ERROR, f"Error: {''.join(exception_info)}")
-            sleep(5)
         except Exception as e:  # noqa
             exception_info = traceback.format_exception(type(e), e, e.__traceback__)
             log(nc, LogLvl.ERROR, f"Error: {''.join(exception_info)}")
@@ -131,8 +134,8 @@ def background_thread_task():
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, RequestException) as net_err:
                 log(nc, LogLvl.INFO, f"Network error in reporting the error: {net_err}")
-
-            sleep(5)
+        # if trigger has been set sinec the start of this iteration this will pass right through
+        trigger.wait(timeout=CHECK_INTERVAL)
 
 
 def start_bg_task():
@@ -183,6 +186,10 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
 
     return ""
 
+
+def trigger_handler(providerId: str):
+    print('TRIGGER called')
+    trigger.set()
 
 if __name__ == "__main__":
     run_app("main:APP", log_level="trace")
