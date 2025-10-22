@@ -37,7 +37,8 @@ models_to_fetch = {
 }
 app_enabled = Event()
 trigger = Event()
-CHECK_INTERVAL = 5 * 60
+CHECK_INTERVAL = 5
+CHECK_INTERVAL_WITH_TRIGGER = 5 * 60
 CHECK_INTERVAL_ON_ERROR = 10
 
 @asynccontextmanager
@@ -88,15 +89,14 @@ def background_thread_task():
                 (model, task) = task_processor_name.split(":", 1)
                 task_type_ids.add(task)
 
-        trigger.clear()
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not response:
-                trigger.wait(timeout=CHECK_INTERVAL)
+                wait_for_tasks()
                 continue
         except (NextcloudException, RequestException, JSONDecodeError) as e:
             log(nc, LogLvl.ERROR, f"Network error fetching the next task {e}")
-            trigger.wait(timeout=CHECK_INTERVAL_ON_ERROR)
+            wait_for_tasks(CHECK_INTERVAL_ON_ERROR)
             continue
 
         task = response["task"]
@@ -134,8 +134,6 @@ def background_thread_task():
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, RequestException) as net_err:
                 log(nc, LogLvl.INFO, f"Network error in reporting the error: {net_err}")
-        # if trigger has been set sinec the start of this iteration this will pass right through
-        trigger.wait(timeout=CHECK_INTERVAL)
 
 
 def start_bg_task():
@@ -190,6 +188,15 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
 def trigger_handler(providerId: str):
     print('TRIGGER called')
     trigger.set()
+
+def wait_for_tasks(interval = None):
+    global CHECK_INTERVAL
+    global CHECK_INTERVAL_WITH_TRIGGER
+    actual_interval = CHECK_INTERVAL if interval is None else interval
+    if trigger.wait(timeout=actual_interval):
+        CHECK_INTERVAL = CHECK_INTERVAL_WITH_TRIGGER
+    trigger.clear()
+
 
 if __name__ == "__main__":
     run_app("main:APP", log_level="trace")
