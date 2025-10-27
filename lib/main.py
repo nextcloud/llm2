@@ -36,7 +36,10 @@ models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
 }
 app_enabled = Event()
-
+trigger = Event()
+CHECK_INTERVAL = 5
+CHECK_INTERVAL_WITH_TRIGGER = 5 * 60
+CHECK_INTERVAL_ON_ERROR = 10
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -44,6 +47,7 @@ async def lifespan(_app: FastAPI):
         APP,
         enabled_handler, # type: ignore
         models_to_fetch=models_to_fetch,
+        trigger_handler=trigger_handler
     )
     nc = NextcloudApp()
     if nc.enabled_state:
@@ -88,11 +92,11 @@ def background_thread_task():
         try:
             response = nc.providers.task_processing.next_task(list(provider_ids), list(task_type_ids))
             if not response:
-                sleep(5)
+                wait_for_tasks()
                 continue
         except (NextcloudException, RequestException, JSONDecodeError) as e:
             log(nc, LogLvl.ERROR, f"Network error fetching the next task {e}")
-            sleep(5)
+            wait_for_tasks(CHECK_INTERVAL_ON_ERROR)
             continue
 
         task = response["task"]
@@ -122,7 +126,6 @@ def background_thread_task():
             # Error when reporting the result
             exception_info = traceback.format_exception(type(e), e, e.__traceback__)
             log(nc, LogLvl.ERROR, f"Error: {''.join(exception_info)}")
-            sleep(5)
         except Exception as e:  # noqa
             exception_info = traceback.format_exception(type(e), e, e.__traceback__)
             log(nc, LogLvl.ERROR, f"Error: {''.join(exception_info)}")
@@ -131,8 +134,6 @@ def background_thread_task():
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, RequestException) as net_err:
                 log(nc, LogLvl.INFO, f"Network error in reporting the error: {net_err}")
-
-            sleep(5)
 
 
 def start_bg_task():
@@ -182,6 +183,19 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 break
 
     return ""
+
+
+def trigger_handler(providerId: str):
+    print('TRIGGER called')
+    trigger.set()
+
+def wait_for_tasks(interval = None):
+    global CHECK_INTERVAL
+    global CHECK_INTERVAL_WITH_TRIGGER
+    actual_interval = CHECK_INTERVAL if interval is None else interval
+    if trigger.wait(timeout=actual_interval):
+        CHECK_INTERVAL = CHECK_INTERVAL_WITH_TRIGGER
+    trigger.clear()
 
 
 if __name__ == "__main__":
