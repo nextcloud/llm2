@@ -9,6 +9,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.5.0] - 2025-11-21
+
+### Fixed
+
+- Allow building llm2 locally on podman
+- Update dependencies
+- Catch all HTTP request exceptions
+
+### Changed
+
+- Polling performance improvements
+- Replace httpx library with niquests
+
 ## [2.4.2] - 2025-08-05
 
 ### Fixed
@@ -27,65 +40,67 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [2.4.0] - 2025-04-22
 
 ### New
- - feat(chatwithtools): Use bare prompts instead of llama.cpp-builtin tool calling
+
+- feat(chatwithtools): Use bare prompts instead of llama.cpp-builtin tool calling
 
 ### Fixed
- - fix(reformulate): fix task type
- - fix(headline): fix task type
- - Update dependencies
+
+- fix(reformulate): fix task type
+- fix(headline): fix task type
+- Update dependencies
 
 ## [2.3.4] - 2025-03-21
 
 ### Fixed
 
-* fix(contextwrite): refactor prompt to work on languages other than english
-* fix: Update deps
-* fix: update cuda
-* fix: update llama-cpp-python
+- fix(contextwrite): refactor prompt to work on languages other than english
+- fix: Update deps
+- fix: update cuda
+- fix: update llama-cpp-python
 
 ## [2.3.3] - 2025-03-06
 
 ### Fixed
 
-* fix(SummarizeProcessor): Use correct signature for RecursiveCharacterTextSplitter
-* fix: Update deps
+- fix(SummarizeProcessor): Use correct signature for RecursiveCharacterTextSplitter
+- fix: Update deps
 
 ## [2.3.2] - 2025-02-20
 
 ### Fixed
 
-* fix: Update dependencies
+- fix: Update dependencies
 
 
 ## [2.3.1] -2025-02-20
 
 ### Fixed
 
-* fix(ChatProcessor): Fix attribute access
+- fix(ChatProcessor): Fix attribute access
 
 
 ## [2.3.0] -2025-02-18
 
 ### New
 
-* enh: Always use the chat method
-* feat: add changetone provider
-* feat: add proofread provider
+- enh: Always use the chat method
+- feat: add changetone provider
+- feat: add proofread provider
 
 ### Fixed
 
-* fix: Rework task_processor loading to wait until model is loaded
+- fix: Rework task_processor loading to wait until model is loaded
 
 
 ## [2.2.2] - 2024-12-20
 
 ### Fixed
 
-* fix(chatwithtools): Expect a list of tool messages
-* fix(main): Don't drop background task when app is disabled
-* fix: Only run background thread once
-* fix(summarize): Improve prompt
-* fix(chat): Expect json-stringified messages in history {role, content}
+- fix(chatwithtools): Expect a list of tool messages
+- fix(main): Don't drop background task when app is disabled
+- fix: Only run background thread once
+- fix(summarize): Improve prompt
+- fix(chat): Expect json-stringified messages in history {role, content}
 
 ## [2.2.1] - 2024-12-16
 
@@ -98,15 +113,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### New
 
-enh(summarize): Try to make it use bulleted lists for longer texts
-enh: Implement chatwithtools task type
-feat: Use chunking if the text doesn't fit the context
+- enh(summarize): Try to make it use bulleted lists for longer texts
+- enh: Implement chatwithtools task type
+- feat: Use chunking if the text doesn't fit the context
 
 ### Fixed
 
-fix(summarize): Use a better algorithm for chunked summaries
-fix(summarize): Always summarize at least once
-fix(ci): app_api is pre-installed from NC 31 (#37) Anupam Kumar* 03.10.24, 14:13
+- fix(summarize): Use a better algorithm for chunked summaries
+- fix(summarize): Always summarize at least once
+- fix(ci): app_api is pre-installed from NC 31 (#37) Anupam Kumar* 03.10.24, 14:13
 
 ## [2.1.4] - 2024-09-12
 
@@ -170,5 +185,5 @@ fix(ci): app_api is pre-installed from NC 31 (#37) Anupam Kumar* 03.10.24, 14:13
 
 ### New
 
-feat: Update prompts and add new task types
-feat: Add task processing API
+- feat: Update prompts and add new task types
+- feat: Add task processing API
