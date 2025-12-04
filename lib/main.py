@@ -34,7 +34,7 @@ def log(nc, level, content):
 
 models_to_fetch = {
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf") },
-    "https://huggingface.co/unsloth/Olmo-3-7B-Instruct-GGUF/resolve/main/Olmo-3-7B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Olmo-3-7B-Instruct-Q4_K_M.gguf") },
+    "https://huggingface.co/unsloth/Olmo-3-7B-Instruct-GGUF/resolve/86844f8ff856ba9cc8a22c7b9edd7cf95129a580/Olmo-3-7B-Instruct-Q4_K_M.gguf": { "save_path": os.path.join(persistent_storage(), "Olmo-3-7B-Instruct-Q4_K_M.gguf") },
 }
 app_enabled = Event()
 trigger = Event()
