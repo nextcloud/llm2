@@ -9,6 +9,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.6.0] - 2025-12-09
+
+### Added
+
+- Ship OLMo 3 model
+
+### Fixed
+
+- Update dependencies
+
 ## [2.5.0] - 2025-11-21
 
 ### Fixed
@@ -39,7 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.4.0] - 2025-04-22
 
-### New
+### Added
 
 - feat(chatwithtools): Use bare prompts instead of llama.cpp-builtin tool calling
 
@@ -71,17 +81,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - fix: Update dependencies
 
-
 ## [2.3.1] -2025-02-20
 
 ### Fixed
 
 - fix(ChatProcessor): Fix attribute access
 
-
 ## [2.3.0] -2025-02-18
 
-### New
+### Added
 
 - enh: Always use the chat method
 - feat: add changetone provider
@@ -90,7 +98,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - fix: Rework task_processor loading to wait until model is loaded
-
 
 ## [2.2.2] - 2024-12-20
 
@@ -108,10 +115,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - fixed failed import
 
-
 ## [2.2.0] - 2024-12-12
 
-### New
+### Added
 
 - enh(summarize): Try to make it use bulleted lists for longer texts
 - enh: Implement chatwithtools task type
@@ -125,44 +131,40 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.1.4] - 2024-09-12
 
-### Fix
+### Fixed
 
 - update docker image version
 
-
 ## [2.1.3] - 2024-09-11
 
-### Fix
+### Fixed
 
 - update context size for llama 3.1
 
-
 ## [2.1.2] - 2024-08-26
 
-### Fix
+### Fixed
 
 - filename of the llama3.1 model in config
 - catch JSONDecodeError for when server is in maintenance mode
 
-### Change
+### Changed
 
 - better app_enabled handling
 
-
 ## [2.1.1] - 2024-08-23
 
-### Fix
+### Fixed
 
 - compare uppercase COMPUTE_DEVICE value (#27)
 
-
 ## [2.1.0] - 2024-08-22
 
-### Fix
+### Fixed
 
 - Catch network exceptions and keep the loop going
 
-### Change
+### Changed
 
 - Migrate default config to llama compatible config
 - Use COMPUTE_DEVICE to determine gpu offloading
@@ -173,7 +175,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [2.0.1] - 2024-08-14
 
-### Fix
+### Fixed
 
 - Disable ContextWrite chain as it does not work with Llama 3 / 3.1
 
@@ -183,7 +185,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Requires Nextcloud 30 and AppAPI v3
 
-### New
+### Added
 
 - feat: Update prompts and add new task types
 - feat: Add task processing API
