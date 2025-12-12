@@ -17,7 +17,8 @@ from task_processors import generate_task_processors
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, persistent_storage, run_app, set_handlers
-from nc_py_api.ex_app.providers.task_processing import TaskProcessingProvider, ShapeEnumValue
+from nc_py_api.ex_app.providers.task_processing import ShapeDescriptor, ShapeType, TaskProcessingProvider, \
+    ShapeEnumValue
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[logging.StreamHandler()])
 logger = logging.getLogger(__name__)
@@ -157,15 +158,18 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                     name="Local Large language Model: " + model,
                     task_type=task,
                     expected_runtime=30,
-                     input_shape_enum_values= {
-                            "tone": [
-                                ShapeEnumValue(name= "Friendlier", value= "friendlier"),
-                                ShapeEnumValue(name= "More formal", value= "more formal"),
-                                ShapeEnumValue(name= "Funnier", value= "funnier"),
-                                ShapeEnumValue(name= "More casual", value= "more casual"),
-                                ShapeEnumValue(name= "More urgent", value= "more urgent"),
-                            ],
-                        } if task == "core:text2text:changetone" else {}
+                    input_shape_enum_values= {
+                        "tone": [
+                            ShapeEnumValue(name= "Friendlier", value= "friendlier"),
+                            ShapeEnumValue(name= "More formal", value= "more formal"),
+                            ShapeEnumValue(name= "Funnier", value= "funnier"),
+                            ShapeEnumValue(name= "More casual", value= "more casual"),
+                            ShapeEnumValue(name= "More urgent", value= "more urgent"),
+                        ],
+                    } if task == "core:text2text:changetone" else {},
+                    optional_input_shape=[
+                        ShapeDescriptor(name="memories", description="Memories to inject into the prompt", shape_type=ShapeType.LIST_OF_TEXTS)
+                    ] if task == "core:text2text:chat" else [],
                 )
                 await nc.providers.task_processing.register(provider)
                 log(nc, LogLvl.INFO, f"Registered {task_processor_name}")
