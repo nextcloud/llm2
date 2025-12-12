@@ -26,7 +26,7 @@ class ChatProcessor:
             inputs: dict[str, Any],
     ) -> dict[str, str]:
         system_prompt = inputs['system_prompt']
-        if inputs['memories']:
+        if inputs.get('memories'):
             system_prompt += "\n\nYou can remember things from other conversations with the user. If they are relevant, take into account the following memories: \n" + "\n\n".join(inputs['memories']) + "\n\n"
         return {'output': self.runnable.invoke(
             [('human', system_prompt)] + [(message['role'], message['content']) for message in [json.loads(message) for message in inputs['history']]] + [('human', inputs['input'])]
