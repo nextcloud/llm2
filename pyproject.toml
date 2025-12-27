@@ -12,7 +12,7 @@ package-mode = false
 python = "^3.10"
 pydantic = "2.*"
 fastapi = "^0.127.1"
-nc-py-api = {extras = ["app"], version = "^0.22.0"}
+nc-py-api = {extras = ["app"], version = "^0.23.0"}
 langchain = "^0.3.27"
 niquests = "^3.16.1"
 langchain-community = "^0.3.24"
