@@ -1479,14 +1479,14 @@ docs = ["autodoc-pydantic (>=2.0.1)", "caldav (==1.3.6)", "sphinx (<8)", "sphinx
 
 [[package]]
 name = "niquests"
-version = "3.15.2"
+version = "3.16.1"
 description = "Niquests is a simple, yet elegant, HTTP library. It is a drop-in replacement for Requests, which is under feature freeze."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "niquests-3.15.2-py3-none-any.whl", hash = "sha256:2446e3602ba1418434822f5c1fcf8b8d1b52a3c296d2808a1ab7de4cf1312d99"},
-    {file = "niquests-3.15.2.tar.gz", hash = "sha256:8076b1d2ff957022d52b2216ca7df92d92ce426d19a7ed63c7fd4fd630ab6c2b"},
+    {file = "niquests-3.16.1-py3-none-any.whl", hash = "sha256:e26e302f36fb6730f9c36755506a84a5f2bb1ae92c7ef5029a6cc7cf98622ded"},
+    {file = "niquests-3.16.1.tar.gz", hash = "sha256:0750eb7fb4bdf46af5041e75c5f37a2a6974e6f620b0f6a234c4b858dbf38ddb"},
 ]
 
 [package.dependencies]
@@ -3143,4 +3143,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "9d9d97fa5e0bf4186e7cd026a507413910b28c31f895cb7fd6a64c8fbada50cf"
+content-hash = "02d4b68df5f3f06ea177ce9f0326627a17583060455683d6991157ffdeb196ff"
