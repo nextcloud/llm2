@@ -1451,14 +1451,14 @@ files = [
 
 [[package]]
 name = "nc-py-api"
-version = "0.23.1"
+version = "0.24.0"
 description = "Nextcloud Python Framework"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "nc_py_api-0.23.1-py3-none-any.whl", hash = "sha256:e0d3998fb0368474ea902d418c4ed7e818b03f6aa29e9b1b1bd15587edb06868"},
-    {file = "nc_py_api-0.23.1.tar.gz", hash = "sha256:57c0a70bd5d88854868885271c88f192ec3976681597bf8848783f6b13f1841c"},
+    {file = "nc_py_api-0.24.0-py3-none-any.whl", hash = "sha256:ca3f9afe9854daf8c78d50d98613291b2c770949fe392c3d35285c934982d4f7"},
+    {file = "nc_py_api-0.24.0.tar.gz", hash = "sha256:7521896e9e8e0489061f9f0c52a654a26fdf0326e784688457df3447013ad6a1"},
 ]
 
 [package.dependencies]
@@ -3143,4 +3143,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "bb28733433469a557c86f864c85681924dece732f2756e87be3520328229cf12"
+content-hash = "39fff79cc26b0fd83f51ded1dd207af96a45a27bac8cc9e64765f30bdf5b6666"
