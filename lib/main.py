@@ -42,6 +42,8 @@ trigger = Event()
 CHECK_INTERVAL = 5
 CHECK_INTERVAL_WITH_TRIGGER = 5 * 60
 CHECK_INTERVAL_ON_ERROR = 10
+SHUTDOWN_EVENT_RECEIVED = Event()
+SHUTDOWN_CLEAR = Event()
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -56,6 +58,9 @@ async def lifespan(_app: FastAPI):
         app_enabled.set()
     start_bg_task()
     yield
+    print("\nSIGTERM received. Processing last task and stopping to fetch and process new tasks..")
+    SHUTDOWN_EVENT_RECEIVED.set()
+    SHUTDOWN_CLEAR.wait()
 
 
 APP = FastAPI(lifespan=lifespan)
@@ -79,6 +84,9 @@ def background_thread_task():
         if not app_enabled.is_set():
             sleep(30)
             continue
+
+        if SHUTDOWN_EVENT_RECEIVED.is_set():
+            break
 
         current_minute = int(strftime("%M"))
         if current_minute % 5 == 0:
@@ -136,7 +144,7 @@ def background_thread_task():
                 nc.providers.task_processing.report_result(task["id"], error_message=str(e))
             except (NextcloudException, RequestException) as net_err:
                 log(nc, LogLvl.INFO, f"Network error in reporting the error: {net_err}")
-
+    SHUTDOWN_CLEAR.set()
 
 def start_bg_task():
     t = Thread(target=background_thread_task, args=())
@@ -201,7 +209,6 @@ def wait_for_tasks(interval = None):
     if trigger.wait(timeout=actual_interval):
         CHECK_INTERVAL = CHECK_INTERVAL_WITH_TRIGGER
     trigger.clear()
-
 
 if __name__ == "__main__":
     run_app("main:APP", log_level="trace")
