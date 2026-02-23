@@ -39,7 +39,7 @@ models_to_fetch = {
 }
 app_enabled = Event()
 trigger = Event()
-CHECK_INTERVAL = 5
+CHECK_INTERVAL = float(os.getenv('TASK_POLLING_INTERVAL', '5'))
 CHECK_INTERVAL_WITH_TRIGGER = 5 * 60
 CHECK_INTERVAL_ON_ERROR = 10
 SHUTDOWN_EVENT_RECEIVED = Event()
