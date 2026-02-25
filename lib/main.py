@@ -60,6 +60,7 @@ async def lifespan(_app: FastAPI):
     yield
     print("\nSIGTERM received. Processing last task and stopping to fetch and process new tasks..")
     SHUTDOWN_EVENT_RECEIVED.set()
+    trigger.set()
     SHUTDOWN_CLEAR.wait()
 
 
