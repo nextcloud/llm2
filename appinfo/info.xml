@@ -33,5 +33,12 @@ See [the nextcloud admin docs](https://docs.nextcloud.com/server/latest/admin_ma
 			<image-tag>2.6.0</image-tag>
 		</docker-install>
 		<system>false</system>
+		<environment-variables>
+			<variable>
+				<name>TASK_POLLING_INTERVAL</name>
+				<display-name>Task polling interval</display-name>
+				<description>The interval in which the app will poll for new tasks, in seconds (can be floating point numbers). This will only be used when running in Kubernetes or with Nextcloud below v33. This value defaults to 5 seconds.</description>
+			</variable>
+		</environment-variables>
 	</external-app>
 </info>
