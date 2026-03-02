@@ -476,6 +476,18 @@ standard = ["email-validator (>=2.0.0)", "fastapi-cli[standard] (>=0.0.8)", "htt
 standard-no-fastapi-cloud-cli = ["email-validator (>=2.0.0)", "fastapi-cli[standard-no-fastapi-cloud-cli] (>=0.0.8)", "httpx (>=0.23.0,<1.0.0)", "jinja2 (>=3.1.5)", "pydantic-extra-types (>=2.0.0)", "pydantic-settings (>=2.0.0)", "python-multipart (>=0.0.18)", "uvicorn[standard] (>=0.12.0)"]
 
 [[package]]
+name = "filelock"
+version = "3.24.3"
+description = "A platform independent file lock."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "filelock-3.24.3-py3-none-any.whl", hash = "sha256:426e9a4660391f7f8a810d71b0555bce9008b0a1cc342ab1f6947d37639e002d"},
+    {file = "filelock-3.24.3.tar.gz", hash = "sha256:011a5644dc937c22699943ebbfc46e969cdde3e171470a6e40b9533e5a72affa"},
+]
+
+[[package]]
 name = "frozenlist"
 version = "1.8.0"
 description = "A list-like structure which implements collections.abc.MutableSequence"
@@ -1452,18 +1464,19 @@ files = [
 
 [[package]]
 name = "nc-py-api"
-version = "0.24.0"
+version = "0.24.1"
 description = "Nextcloud Python Framework"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "nc_py_api-0.24.0-py3-none-any.whl", hash = "sha256:ca3f9afe9854daf8c78d50d98613291b2c770949fe392c3d35285c934982d4f7"},
-    {file = "nc_py_api-0.24.0.tar.gz", hash = "sha256:7521896e9e8e0489061f9f0c52a654a26fdf0326e784688457df3447013ad6a1"},
+    {file = "nc_py_api-0.24.1-py3-none-any.whl", hash = "sha256:e364f679782f02c6d83bb14ba39907882a31c30b04df3d039ef9695d699a4015"},
+    {file = "nc_py_api-0.24.1.tar.gz", hash = "sha256:8aa15d3078ec303903a810c66cb7e420aba01490f8a3f44d9c671468037c480e"},
 ]
 
 [package.dependencies]
 fastapi = ">=0.109.2"
+filelock = ">=3.20.3,<4"
 niquests = ">=3,<4"
 pydantic = ">=2.1.1"
 python-dotenv = ">=1"
@@ -1473,10 +1486,9 @@ xmltodict = ">=0.13"
 [package.extras]
 app = ["uvicorn[standard] (>=0.23.2)"]
 bench = ["matplotlib", "numpy", "py-cpuinfo", "uvicorn[standard] (>=0.23.2)"]
-calendar = ["caldav (==1.3.6)"]
-dev = ["caldav (==1.3.6)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
+calendar = ["caldav (>=2.2.6)"]
+dev = ["caldav (>=2.2.6)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
 dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pytest", "pytest-asyncio"]
-docs = ["autodoc-pydantic (>=2.0.1)", "caldav (==1.3.6)", "sphinx (<8)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-issues (>=3.0.1)", "sphinx-rtd-theme (<3)", "uvicorn[standard] (>=0.23.2)"]
 
 [[package]]
 name = "niquests"
@@ -3144,4 +3156,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "ecf2fa792f550d79916704f07ca42eac696cd8334ff9a8a53bf73e234929f180"
+content-hash = "a2f40627dfe96879ff41786bb67b1af3f1ed892858e0385dfcaabbf4291f0a80"
