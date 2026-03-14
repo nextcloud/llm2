@@ -1492,20 +1492,20 @@ dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pyt
 
 [[package]]
 name = "niquests"
-version = "3.17.0"
+version = "3.18.2"
 description = "Niquests is a simple, yet elegant, HTTP library. It is a drop-in replacement for Requests, which is under feature freeze."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "niquests-3.17.0-py3-none-any.whl", hash = "sha256:3930d94fce367385950dd545f913e7cfc6457feda76aecafeb324aae45da9fe1"},
-    {file = "niquests-3.17.0.tar.gz", hash = "sha256:1f4f337a973215c76f6f6471504fedab9dc6187203284146081e1bd3d2a311fc"},
+    {file = "niquests-3.18.2-py3-none-any.whl", hash = "sha256:930b43cb8633029e7acb4e8ff41607eca3b01a8e30f1806eed6734c74266b42c"},
+    {file = "niquests-3.18.2.tar.gz", hash = "sha256:12256e7ecaccc498d9cccd9f4116b91abab812bace37966f3f439e92e26195b9"},
 ]
 
 [package.dependencies]
 charset-normalizer = ">=2,<4"
 urllib3-future = ">=2.13.903,<3"
-wassima = ">=1.0.1,<3"
+wassima = {version = ">=1.0.1,<3", markers = "sys_platform != \"emscripten\""}
 
 [package.extras]
 brotli = ["urllib3-future[brotli]"]
@@ -2675,6 +2675,7 @@ description = "Access your OS root certificates with utmost ease"
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
+markers = "sys_platform != \"emscripten\""
 files = [
     {file = "wassima-2.0.2-py3-none-any.whl", hash = "sha256:54396882c0a210e404bb11740d47d66a35a6d68dde073a381c57d6e112cc245a"},
     {file = "wassima-2.0.2.tar.gz", hash = "sha256:45de4ddf2a99e9277cc33616b3b34eee7dfcaaf5059b6e8c19ca62a6c5a65fbf"},
@@ -3156,4 +3157,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a736de69626288dd45de6c6ff1fa9a9c2a22789b5a2f3764ee3f22905b2991b0"
+content-hash = "c6281d62002e2a902cc7f596f8178d85f9c2ec208ff6398371b15c6c4d8931a3"
