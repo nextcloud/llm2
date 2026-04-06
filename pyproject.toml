@@ -14,7 +14,7 @@ pydantic = "2.*"
 fastapi = "^0.135.3"
 nc-py-api = {extras = ["app"], version = "^0.24.2"}
 langchain = "^0.3.27"
-niquests = "^3.18.2"
+niquests = "^3.18.4"
 langchain-community = "^0.3.24"
 llama-cpp-python = "^0.3.19"
 
