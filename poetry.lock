@@ -1151,13 +1151,13 @@ vcr = ["vcrpy (>=7.0.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.19"
+version = "0.3.20"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "llama_cpp_python-0.3.19.tar.gz", hash = "sha256:6816e4a0a74ae9a356e7a0546e13147543f01f695c86a28d940e4b86519acf13"},
+    {file = "llama_cpp_python-0.3.20.tar.gz", hash = "sha256:70f01b7d915d31c617dc66610a332cb2d51cde84c8b152d09a352206323616f5"},
 ]
 
 [package.dependencies]
@@ -3158,4 +3158,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "c2a1760649123252a4d25d49e45ec532511beeda7b206e78ecf7ae0828420fb8"
+content-hash = "0a629561cf99c374a51fb5337878ca9c6adc7c36ca7d409cb344308255507778"
