@@ -68,13 +68,7 @@ jobs:
         with:
           repository: nextcloud/server
           ref: ${{ matrix.server-versions }}
-
-      - name: Checkout submodules
-        shell: bash
-        run: |
-          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-          git submodule sync --recursive
-          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+          submodules: recursive
 
       - name: Set up php ${{ matrix.php-versions }}
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f # v2.37.0
