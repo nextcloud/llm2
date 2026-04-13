@@ -9,6 +9,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.7.0] - 2026-04-13
+
+### Added
+
+- Kubernetes scaling support
+- Optional memories input for `core:text2text:chat` task
+- `TASK_POLLING_INTERVAL` environment variable
+
+### Changed
+
+- Bump max supported Nextcloud version to 34
+- Update dependencies
+
+### Fixed
+
+- Gracefully shutdown if SIGTERM is received
+
 ## [2.6.0] - 2025-12-09
 
 ### Added
