@@ -1492,14 +1492,14 @@ dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pyt
 
 [[package]]
 name = "niquests"
-version = "3.18.5"
+version = "3.18.6"
 description = "Niquests is a simple, yet elegant, HTTP library. It is a drop-in replacement for Requests, which is under feature freeze."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "niquests-3.18.5-py3-none-any.whl", hash = "sha256:fe486ce71204f9f5ade1266ab1568cc09e4af772409070e26e65b0f8fda5c642"},
-    {file = "niquests-3.18.5.tar.gz", hash = "sha256:5d97b6fc90219d0d8d8feea11b78267a5ac003290a90b5a5a5d8db7c4b7312f0"},
+    {file = "niquests-3.18.6-py3-none-any.whl", hash = "sha256:cb415e31ca18ec69e88f393dcc339bce8baa38d50910e696fd0712d0b9480551"},
+    {file = "niquests-3.18.6.tar.gz", hash = "sha256:bdf8e945241670608552e8b3c41556aaf532705e3c8f1ed197a102d017f0a54a"},
 ]
 
 [package.dependencies]
