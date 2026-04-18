@@ -1464,14 +1464,14 @@ files = [
 
 [[package]]
 name = "nc-py-api"
-version = "0.24.2"
+version = "0.30.0"
 description = "Nextcloud Python Framework"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "nc_py_api-0.24.2-py3-none-any.whl", hash = "sha256:671ffe28df1c0205b782e6bbbfc143c96a447a66f85332c906334e5022230362"},
-    {file = "nc_py_api-0.24.2.tar.gz", hash = "sha256:05a1f214577fc50e38ec2f8fb28c55d09246f93b81ac9bba4385185043d13bae"},
+    {file = "nc_py_api-0.30.0-py3-none-any.whl", hash = "sha256:5ea4678450e87bfeb7145f279511f6f7863b9331a47d61bfc51a9358dae1805b"},
+    {file = "nc_py_api-0.30.0.tar.gz", hash = "sha256:691c8bbc9764c1319b7294a3c74112eb027f97de2fdd8c93ccbf820e8c2565a0"},
 ]
 
 [package.dependencies]
@@ -1486,8 +1486,8 @@ xmltodict = ">=0.13"
 [package.extras]
 app = ["uvicorn[standard] (>=0.23.2)"]
 bench = ["matplotlib", "numpy", "py-cpuinfo", "uvicorn[standard] (>=0.23.2)"]
-calendar = ["caldav (>=2.2.6)"]
-dev = ["caldav (>=2.2.6)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
+calendar = ["caldav (>=3.1,<4)"]
+dev = ["caldav (>=3.1,<4)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
 dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pytest", "pytest-asyncio"]
 
 [[package]]
@@ -3158,4 +3158,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "3a2626998fedaca8fe6b730266c6856e7cf2eda0ad31b8a0307e672a141c08b6"
+content-hash = "007f6d7edf75aa4f0d00ed5cb5b3af956fd473b85c3a24b3258702f9c9339e35"
