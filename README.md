@@ -40,12 +40,13 @@ See [the Nextcloud admin documentation](https://docs.nextcloud.com/server/latest
    Examples:
 
    ```sh
+   wget -nc -P models https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf
    wget -nc -P models https://download.nextcloud.com/server/apps/llm/llama-2-7b-chat-ggml/llama-2-7b-chat.Q4_K_M.gguf
    wget -nc -P models https://download.nextcloud.com/server/apps/llm/leo-hessianai-13B-chat-bilingual-GGUF/leo-hessianai-13b-chat-bilingual.Q4_K_M.gguf
    wget -nc -P models https://huggingface.co/Nextcloud-AI/llm_neuralbeagle_14_7b_gguf/resolve/main/neuralbeagle14-7b.Q4_K_M.gguf
    ```
 
-4. Run the app:
+4. Run the app (replace `<APP_VERSION>` with the actual app version from `appinfo/info.xml`):
 
    ```sh
    PYTHONUNBUFFERED=1 APP_HOST=0.0.0.0 APP_ID=llm2 APP_PORT=9081 APP_SECRET=12345 APP_VERSION=<APP_VERSION> NEXTCLOUD_URL=http://nextcloud.local python3 lib/main.py
