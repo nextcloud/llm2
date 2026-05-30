@@ -128,9 +128,12 @@ def generate_task_processors(task_processors = {}):
 
 def generate_task_processors_for_model(file_name, task_processors):
     model_name = file_name.split('.gguf')[0]
-    n_ctx = get_model_config(file_name)["loader_config"]["n_ctx"]
+    model_config = get_model_config(file_name)
+    n_ctx = model_config["loader_config"]["n_ctx"]
+    max_tokens = model_config["loader_config"].get("max_tokens")
 
-    task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_chat_chain(file_name), n_ctx)
+
+    task_processors[model_name + ":core:text2text:summary"] = lambda nc, task_id: SummarizeProcessor(generate_chat_chain(file_name), nc, task_id, n_ctx, max_tokens)
     task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:topics"] = lambda: TopicsProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:simplification"] = lambda: SimplifyProcessor(generate_chat_chain(file_name))

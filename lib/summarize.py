@@ -7,6 +7,7 @@ from langchain.prompts import PromptTemplate
 from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.runnables import Runnable
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from nc_py_api import NextcloudApp
 
 
 class SummarizeProcessor:
@@ -35,8 +36,12 @@ Summaries to combine:
 """
     )
 
-    def __init__(self, runnable: Runnable, n_ctx: int = 8000):
+    def __init__(self, runnable: Runnable, nc: NextcloudApp, task_id: int, n_ctx: int = 8000, max_tokens: int = 512):
         self.runnable = runnable
+        self.nc = nc
+        self.task_id = task_id
+        self.n_ctx = n_ctx
+        self.max_tokens = max_tokens if max_tokens > 0 else 512
         self.text_splitter = RecursiveCharacterTextSplitter(
             separators=['\n\n|\\.|\\?|\\!'],
             is_separator_regex=True,
@@ -45,6 +50,29 @@ Summaries to combine:
             chunk_overlap=600,
             length_function=len,
         )
+
+    def _invoke_progress(self, messages, max_tokens: int, idx: int, total_splits: int) -> str:
+        # Stream the response and update progress
+
+        start_pct = (idx / total_splits) * 100.0
+        end_pct = ((idx + 1) / total_splits) * 100.0
+
+        tokens_generated = 0
+        full_response = ""
+        total_range = end_pct - start_pct
+
+        for chunk in self.runnable.stream(messages):
+            token = chunk.content if hasattr(chunk, 'content') else str(chunk)
+            full_response += token
+            tokens_generated += 1
+
+            fraction = min(1.0, tokens_generated / max_tokens)
+            progress = start_pct + fraction * total_range
+            self.nc.providers.task_processing.set_progress(self.task_id, progress)
+
+        # Ensure the end percentage is set after completion
+        self.nc.providers.task_processing.set_progress(self.task_id, end_pct)
+        return full_response
 
     def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
         # Split text if needed
@@ -55,23 +83,29 @@ Summaries to combine:
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=splits[0]))
             ]
-            output = self.runnable.invoke(messages)
-            return {'output': output.content}
+
+            output = self._invoke_progress(messages, self.max_tokens, 0, 1)
+            return {'output': output}
 
         # Process each split
+        total_splits = len(splits)
         summaries = []
-        for split in splits:
+
+        for idx, split in enumerate(splits):
+            
+
             messages = [
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=split))
             ]
-            output = self.runnable.invoke(messages)
-            summaries.append(output.content)
 
-        # Merge summaries
-        messages = [
+            split_output = self._invoke_progress(messages, self.max_tokens, idx, total_splits)
+            summaries.append(split_output)
+
+        merge_messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.merge_prompt.format(input="\n\n".join(summaries)))
         ]
-        final_output = self.runnable.invoke(messages)
+        final_output = self.runnable.invoke(merge_messages)
+        self.nc.providers.task_processing.set_progress(self.task_id, 100.0)
         return {'output': final_output.content}
