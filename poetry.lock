@@ -1464,30 +1464,31 @@ files = [
 
 [[package]]
 name = "nc-py-api"
-version = "0.24.2"
+version = "0.30.2"
 description = "Nextcloud Python Framework"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "nc_py_api-0.24.2-py3-none-any.whl", hash = "sha256:671ffe28df1c0205b782e6bbbfc143c96a447a66f85332c906334e5022230362"},
-    {file = "nc_py_api-0.24.2.tar.gz", hash = "sha256:05a1f214577fc50e38ec2f8fb28c55d09246f93b81ac9bba4385185043d13bae"},
+    {file = "nc_py_api-0.30.2-py3-none-any.whl", hash = "sha256:612a876b0791136133e56086289be034d8678cac41db9e90fde4e9f09b39ae12"},
+    {file = "nc_py_api-0.30.2.tar.gz", hash = "sha256:8e4f504e1a200475dc226db1b82d0e18880fd8ae7d34ad3c4133e660216069f2"},
 ]
 
 [package.dependencies]
-fastapi = ">=0.109.2"
+fastapi = ">=0.133"
 filelock = ">=3.20.3,<4"
 niquests = ">=3,<4"
 pydantic = ">=2.1.1"
 python-dotenv = ">=1"
+starlette = ">=1.0.1"
 uvicorn = {version = ">=0.23.2", extras = ["standard"], optional = true, markers = "extra == \"app\""}
 xmltodict = ">=0.13"
 
 [package.extras]
 app = ["uvicorn[standard] (>=0.23.2)"]
 bench = ["matplotlib", "numpy", "py-cpuinfo", "uvicorn[standard] (>=0.23.2)"]
-calendar = ["caldav (>=2.2.6)"]
-dev = ["caldav (>=2.2.6)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
+calendar = ["caldav (>=3.1,<4)"]
+dev = ["caldav (>=3.1,<4)", "coverage", "huggingface-hub", "matplotlib", "numpy", "pillow", "pre-commit", "py-cpuinfo", "pylint", "pytest", "pytest-asyncio", "uvicorn[standard] (>=0.23.2)"]
 dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pytest", "pytest-asyncio"]
 
 [[package]]
@@ -2459,14 +2460,14 @@ sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
 name = "starlette"
-version = "0.48.0"
+version = "1.2.1"
 description = "The little ASGI library that shines."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "starlette-0.48.0-py3-none-any.whl", hash = "sha256:0764ca97b097582558ecb498132ed0c7d942f233f365b86ba37770e026510659"},
-    {file = "starlette-0.48.0.tar.gz", hash = "sha256:7e8cee469a8ab2352911528110ce9088fdc6a37d9876926e73da7ce4aa4c7a46"},
+    {file = "starlette-1.2.1-py3-none-any.whl", hash = "sha256:4de0082d08c8f6764a85a54cf1120d6939507a19905c7768acad2a9f875d2b89"},
+    {file = "starlette-1.2.1.tar.gz", hash = "sha256:9b9b5ebb992e67d6093741e63c2f59e4f6fff986f81163c087867bd7b924b3f6"},
 ]
 
 [package.dependencies]
@@ -3158,4 +3159,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "3a2626998fedaca8fe6b730266c6856e7cf2eda0ad31b8a0307e672a141c08b6"
+content-hash = "007f6d7edf75aa4f0d00ed5cb5b3af956fd473b85c3a24b3258702f9c9339e35"
