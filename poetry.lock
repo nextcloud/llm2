@@ -1492,14 +1492,14 @@ dev-min = ["coverage", "huggingface-hub", "pillow", "pre-commit", "pylint", "pyt
 
 [[package]]
 name = "niquests"
-version = "3.18.8"
+version = "3.19.0"
 description = "Niquests is a simple, yet elegant, HTTP library. It is a drop-in replacement for Requests, which is under feature freeze."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "niquests-3.18.8-py3-none-any.whl", hash = "sha256:9b1a3a378277bfca4b2438877d0954e989e4d3f3f75da7bb83bf7204dfa5f1cf"},
-    {file = "niquests-3.18.8.tar.gz", hash = "sha256:06244ef4d1c93b067295b22c1d7a8938be948af1227d368c22acf531f61fdf57"},
+    {file = "niquests-3.19.0-py3-none-any.whl", hash = "sha256:d75efeedda74be9718b2e3508d8c900bd411a3f554c57e3b4d24d9245fc37a1f"},
+    {file = "niquests-3.19.0.tar.gz", hash = "sha256:e3c9fc8aa7c77c3d066dd6a0551d15eee1660ac14a497264577115c3296022ff"},
 ]
 
 [package.dependencies]
@@ -1515,6 +1515,7 @@ ocsp = ["urllib3-future[qh3]"]
 rtls = ["urllib3-future[rtls]"]
 socks = ["urllib3-future[socks]"]
 speedups = ["orjson (>=3,<4)", "urllib3-future[brotli,zstd]"]
+utls = ["urllib3-future[utls]"]
 ws = ["urllib3-future[ws]"]
 zstd = ["urllib3-future[zstd]"]
 
