@@ -34,7 +34,7 @@ def try_parse_tool_calls(content: str):
             except json.JSONDecodeError as e:
                 func = json.loads(m.group(1)[0:-1])
             tool_calls.append(func)
-            if isinstance(func["arguments"], str):
+            if isinstance(func.get("arguments", None), str):
                 func["arguments"] = json.loads(func["arguments"])
             if 'arguments' in func:
                 func['args'] = func['arguments']
