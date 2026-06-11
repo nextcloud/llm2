@@ -37,6 +37,7 @@ class StreamContext:
     stream_interval_seconds: float = 0.75
     current_output: dict[str, Any] = field(default_factory=dict)
     _last_emit_at: float = field(default=0.0, init=False)
+    _last_emitted_output: dict[str, Any] | None = field(default=None, init=False)
 
     @property
     def enabled(self) -> bool:
@@ -73,8 +74,13 @@ class StreamContext:
         if not force and self._last_emit_at and now - self._last_emit_at < self.stream_interval_seconds:
             return
 
-        self.stream_result(dict(self.current_output))
+        payload = dict(self.current_output)
+        if payload == self._last_emitted_output:
+            return
+
+        self.stream_result(payload)
         self._last_emit_at = now
+        self._last_emitted_output = payload
 
     def set_progress(self, progress: float) -> Any:
         if self.progress_callback is None:
@@ -89,6 +95,7 @@ def run_runnable_with_streaming(
     *,
     output_key: str = "output",
     stream_text_transform: Callable[[str], str] | None = None,
+    stream_payload_transform: Callable[[str], dict[str, Any] | None] | None = None,
     suppress_empty_stream_updates: bool = False,
     **extra_output: Any,
 ) -> str:
@@ -101,6 +108,17 @@ def run_runnable_with_streaming(
                 continue
             chunks.append(text_chunk)
             output = "".join(chunks)
+            if stream_payload_transform:
+                streamed_payload = stream_payload_transform(output)
+                if streamed_payload is None:
+                    continue
+                if extra_output:
+                    streamed_payload.update(extra_output)
+                if suppress_empty_stream_updates and not streamed_payload:
+                    continue
+                context.update_output(streamed_payload)
+                continue
+
             streamed_output = stream_text_transform(output) if stream_text_transform else output
             if suppress_empty_stream_updates and streamed_output == "":
                 continue
@@ -111,6 +129,16 @@ def run_runnable_with_streaming(
             )
 
         output = "".join(chunks)
+        if stream_payload_transform:
+            streamed_payload = stream_payload_transform(output)
+            if streamed_payload is None:
+                return output
+            if extra_output:
+                streamed_payload.update(extra_output)
+            if not suppress_empty_stream_updates or streamed_payload:
+                context.update_output(streamed_payload, force=True)
+            return output
+
         streamed_output = stream_text_transform(output) if stream_text_transform else output
         context.update_text(
             streamed_output,

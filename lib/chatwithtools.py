@@ -3,9 +3,9 @@
 """A chat chain
 """
 import json
+import hashlib
 import pprint
 import re
-from random import randint
 from typing import Any
 
 from langchain_community.chat_models import ChatLlamaCpp
@@ -19,6 +19,17 @@ def generate_tool_call(tool_call: dict):
     content += json.dumps({"name": tool_call['name'], "arguments": tool_call['args']})
     content += '</tool_call>'
     return content
+
+
+def generate_tool_call_id(tool_call: dict) -> str:
+    stable_payload = json.dumps(
+        {
+            "name": tool_call.get("name"),
+            "args": tool_call.get("args", tool_call.get("arguments", {})),
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha1(stable_payload.encode("utf-8")).hexdigest()[:16]
 
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
@@ -42,7 +53,9 @@ def try_parse_tool_calls(content: str):
                 func['args'] = func['arguments']
                 del func['arguments']
             if not 'id' in func:
-                func['id'] = str(randint(1, 10000000000))
+                func['id'] = generate_tool_call_id(func)
+            if 'type' not in func:
+                func['type'] = 'tool_call'
             found = True
         except json.JSONDecodeError as e:
             print(f"Failed to parse tool calls: the content is {m.group(1)} and {e}")
@@ -68,7 +81,9 @@ def try_parse_tool_calls(content: str):
                     func['args'] = func['arguments']
                     del func['arguments']
                 if not 'id' in func:
-                    func['id'] = str(randint(1, 10000000000))
+                    func['id'] = generate_tool_call_id(func)
+                if 'type' not in func:
+                    func['type'] = 'tool_call'
             except json.JSONDecodeError as e:
                 print(f"Failed to parse tool calls: the content is {m.group(1)} and {e}")
                 pass
@@ -91,6 +106,21 @@ def strip_tool_calls_for_streaming(content: str) -> str:
         sanitized = sanitized[:min(partial_markers)]
 
     return re.sub(r"<\|im_end\|>$", "", sanitized)
+
+
+def build_streaming_payload(content: str) -> dict[str, Any] | None:
+    payload: dict[str, Any] = {}
+    cleaned_output = strip_tool_calls_for_streaming(content)
+    parsed_response = try_parse_tool_calls(content)
+    tool_calls = parsed_response.get('tool_calls')
+
+    if cleaned_output:
+        payload['output'] = cleaned_output
+    if tool_calls:
+        payload['output'] = cleaned_output
+        payload['tool_calls'] = json.dumps(tool_calls)
+
+    return payload or None
 
 class ChatWithToolsProcessor:
     """
@@ -167,7 +197,7 @@ The following is a JSON specification of the tools you can call and their parame
             self.model,
             messages,
             context,
-            stream_text_transform=strip_tool_calls_for_streaming,
+            stream_payload_transform=build_streaming_payload,
             suppress_empty_stream_updates=True,
         )
 
