@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from typing import Any, List
+from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import Runnable
+
+from streaming import StreamContext, run_runnable_with_streaming
 
 
 class FreePromptProcessor:
@@ -20,9 +22,10 @@ class FreePromptProcessor:
     def __call__(
             self,
             inputs: dict[str, Any],
+            context: StreamContext | None = None,
     ) -> dict[str, Any]:
-        output = self.runnable.invoke([
+        output = run_runnable_with_streaming(self.runnable, [
             SystemMessage(self.system_prompt),
             HumanMessage(inputs['input'])
-        ]).content
+        ], context, state={"stage": "generating"})
         return {'output': output}

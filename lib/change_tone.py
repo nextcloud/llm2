@@ -10,6 +10,8 @@ from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
+from streaming import StreamContext, run_runnable_with_streaming
+
 class ChangeToneProcessor:
 
     runnable: Runnable
@@ -33,10 +35,10 @@ Output only the reformulated text, nothing else. Do not add an introductory sent
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, input_data: dict) -> dict[str, Any]:
+    def __call__(self, input_data: dict, context: StreamContext | None = None) -> dict[str, Any]:
         """Process a single input"""
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=input_data['input'], tone=input_data['tone']).to_string())
         ]
-        return {'output':self.runnable.invoke(messages).content }
+        return {'output': run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})}

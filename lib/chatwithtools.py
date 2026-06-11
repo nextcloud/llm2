@@ -9,8 +9,10 @@ from random import randint
 from typing import Any
 
 from langchain_community.chat_models import ChatLlamaCpp
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.messages.ai import AIMessage
+
+from streaming import StreamContext, run_runnable_with_streaming
 
 def generate_tool_call(tool_call: dict):
     content = '<tool_call>'
@@ -89,7 +91,7 @@ class ChatWithToolsProcessor:
     def __init__(self, runner: ChatLlamaCpp):
         self.model = runner
 
-    def _process_single_input(self, input_data: dict[str, Any]) -> dict[str, Any]:
+    def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         system_prompt = """
 {downstream_system_prompt}
 
@@ -150,15 +152,19 @@ The following is a JSON specification of the tools you can call and their parame
             messages.append(HumanMessage(content=''))
 
         pprint.pprint(messages)
-        response = self.model.invoke(messages)
+        response_content = run_runnable_with_streaming(
+            self.model,
+            messages,
+            context,
+            state={"stage": "generating"},
+        )
 
-        #if not response.tool_calls or len(response.tool_calls) == 0:
-        response = AIMessage(**try_parse_tool_calls(response.content))
+        response = AIMessage(**try_parse_tool_calls(response_content))
 
         return {
             'output': response.content,
             'tool_calls': json.dumps(response.tool_calls)
         }
 
-    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
-        return self._process_single_input(inputs)
+    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        return self._process_single_input(inputs, context)

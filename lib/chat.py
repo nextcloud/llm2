@@ -10,6 +10,8 @@ from langchain.chains.base import Chain
 from langchain_community.chat_models import ChatLlamaCpp
 from langchain_core.runnables import Runnable
 
+from streaming import StreamContext, run_runnable_with_streaming
+
 
 class ChatProcessor:
     """
@@ -24,10 +26,20 @@ class ChatProcessor:
     def __call__(
             self,
             inputs: dict[str, Any],
+            context: StreamContext | None = None,
     ) -> dict[str, str]:
         system_prompt = inputs['system_prompt']
         if inputs.get('memories'):
             system_prompt += "\n\nYou can remember things from other conversations with the user. If they are relevant, take into account the following memories: \n" + "\n\n".join(inputs['memories']) + "\n\n"
-        return {'output': self.runnable.invoke(
-            [('human', system_prompt)] + [(message['role'], message['content']) for message in [json.loads(message) for message in inputs['history']]] + [('human', inputs['input'])]
-        ).content}
+        messages = [('human', system_prompt)] + [
+            (message['role'], message['content'])
+            for message in [json.loads(message) for message in inputs['history']]
+        ] + [('human', inputs['input'])]
+        return {
+            'output': run_runnable_with_streaming(
+                self.runnable,
+                messages,
+                context,
+                state={"stage": "generating"},
+            )
+        }
