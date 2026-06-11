@@ -53,16 +53,6 @@ Summaries to combine:
         splits = self.text_splitter.split_text(inputs['input'])
         total_splits = len(splits)
 
-        if context:
-            context.update_state(
-                {
-                    'stage': 'splitting',
-                    'total_chunks': total_splits,
-                    'completed_chunks': 0,
-                },
-                force=True,
-            )
-
         if len(splits) == 1:
             messages = [
                 SystemMessage(content=self.system_prompt),
@@ -72,23 +62,12 @@ Summaries to combine:
                 self.runnable,
                 messages,
                 context,
-                state={'stage': 'generating', 'total_chunks': 1, 'completed_chunks': 0},
             )
             return {'output': output}
 
         # Process each split
         summaries = []
         for index, split in enumerate(splits, start=1):
-            if context:
-                context.update_state(
-                    {
-                        'stage': 'summarizing_chunks',
-                        'total_chunks': total_splits,
-                        'completed_chunks': index - 1,
-                        'current_chunk': index,
-                    },
-                    force=index == 1,
-                )
             messages = [
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=split))
@@ -97,14 +76,6 @@ Summaries to combine:
             summaries.append(output.content)
             if context:
                 context.set_progress(index / (total_splits + 1) * 50)
-                context.update_state(
-                    {
-                        'stage': 'summarizing_chunks',
-                        'total_chunks': total_splits,
-                        'completed_chunks': index,
-                        'current_chunk': index,
-                    }
-                )
 
         # Merge summaries
         messages = [
@@ -112,25 +83,12 @@ Summaries to combine:
             HumanMessage(content=self.merge_prompt.format(input="\n\n".join(summaries)))
         ]
         if context:
-            context.update_state(
-                {
-                    'stage': 'merging',
-                    'total_chunks': total_splits,
-                    'completed_chunks': total_splits,
-                },
-                force=True,
-            )
             context.set_progress(total_splits / (total_splits + 1) * 50 + 50)
 
         final_output = run_runnable_with_streaming(
             self.runnable,
             messages,
             context,
-            state={
-                'stage': 'merging',
-                'total_chunks': total_splits,
-                'completed_chunks': total_splits,
-            },
         )
 
         if context:

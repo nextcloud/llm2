@@ -3,11 +3,8 @@
 """A chat chain
 """
 import json
-from typing import Any, Optional
+from typing import Any
 
-from langchain.callbacks.manager import CallbackManagerForChainRun
-from langchain.chains.base import Chain
-from langchain_community.chat_models import ChatLlamaCpp
 from langchain_core.runnables import Runnable
 
 from streaming import StreamContext, run_runnable_with_streaming
@@ -40,6 +37,5 @@ class ChatProcessor:
                 self.runnable,
                 messages,
                 context,
-                state={"stage": "generating"},
             )
         }

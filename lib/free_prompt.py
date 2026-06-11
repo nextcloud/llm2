@@ -27,5 +27,5 @@ class FreePromptProcessor:
         output = run_runnable_with_streaming(self.runnable, [
             SystemMessage(self.system_prompt),
             HumanMessage(inputs['input'])
-        ], context, state={"stage": "generating"})
+        ], context)
         return {'output': output}

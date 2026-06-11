@@ -41,5 +41,5 @@ class TopicsProcessor():
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=inputs['input']).to_string())
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})
+        output = run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}

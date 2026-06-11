@@ -36,19 +36,11 @@ class StreamContext:
     progress_callback: Callable[[float], Any] | None = None
     stream_interval_seconds: float = 0.75
     current_output: dict[str, Any] = field(default_factory=dict)
-    current_state: dict[str, Any] = field(default_factory=dict)
     _last_emit_at: float = field(default=0.0, init=False)
 
     @property
     def enabled(self) -> bool:
         return self.stream_result is not None
-
-    def update_state(self, state: dict[str, Any] | None = None, *, force: bool = False, **extra: Any) -> None:
-        if state:
-            self.current_state.update(state)
-        if extra:
-            self.current_state.update(extra)
-        self.emit(force=force)
 
     def update_output(self, output: dict[str, Any] | None = None, *, force: bool = False, **extra: Any) -> None:
         if output:
@@ -62,15 +54,12 @@ class StreamContext:
         text: str,
         *,
         key: str = "output",
-        state: dict[str, Any] | None = None,
         force: bool = False,
         **extra_output: Any,
     ) -> None:
         self.current_output[key] = text
         if extra_output:
             self.current_output.update(extra_output)
-        if state:
-            self.current_state.update(state)
         self.emit(force=force)
 
     def emit(self, *, force: bool = False) -> None:
@@ -99,31 +88,33 @@ def run_runnable_with_streaming(
     context: StreamContext | None = None,
     *,
     output_key: str = "output",
-    state: dict[str, Any] | None = None,
+    stream_text_transform: Callable[[str], str] | None = None,
+    suppress_empty_stream_updates: bool = False,
     **extra_output: Any,
 ) -> str:
     if context and context.enabled:
         chunks: list[str] = []
-        if state:
-            context.update_state(state, force=True)
 
         for chunk in runnable.stream(messages):
             text_chunk = extract_text_content(chunk)
             if not text_chunk:
                 continue
             chunks.append(text_chunk)
+            output = "".join(chunks)
+            streamed_output = stream_text_transform(output) if stream_text_transform else output
+            if suppress_empty_stream_updates and streamed_output == "":
+                continue
             context.update_text(
-                "".join(chunks),
+                streamed_output,
                 key=output_key,
-                state=state,
                 **extra_output,
             )
 
         output = "".join(chunks)
+        streamed_output = stream_text_transform(output) if stream_text_transform else output
         context.update_text(
-            output,
+            streamed_output,
             key=output_key,
-            state=state,
             force=True,
             **extra_output,
         )

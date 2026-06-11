@@ -45,5 +45,5 @@ Output only the new, rewritten text without quotes, nothing else. Do not mention
                 text=inputs['input']
             ))
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})
+        output = run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}

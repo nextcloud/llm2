@@ -42,5 +42,5 @@ Output only the new text without quotes, nothing else, no introductory or explan
                 text=inputs['input']
             ))
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})
+        output = run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}

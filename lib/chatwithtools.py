@@ -81,6 +81,17 @@ def try_parse_tool_calls(content: str):
         return {"role": "assistant", "content": c, "tool_calls": tool_calls}
     return {"role": "assistant", "content": re.sub(r"<\|im_end\|>$", "", content)}
 
+
+def strip_tool_calls_for_streaming(content: str) -> str:
+    sanitized = re.sub(r"<tool_call>.*?</tool_call>", "", content, flags=re.DOTALL)
+    sanitized = re.sub(r"```tool_call\n.*?\n```", "", sanitized, flags=re.DOTALL)
+
+    partial_markers = [index for index in (sanitized.find("<tool"), sanitized.find("```tool")) if index != -1]
+    if partial_markers:
+        sanitized = sanitized[:min(partial_markers)]
+
+    return re.sub(r"<\|im_end\|>$", "", sanitized)
+
 class ChatWithToolsProcessor:
     """
 	A chat with tools processor that supports batch processing
@@ -156,7 +167,8 @@ The following is a JSON specification of the tools you can call and their parame
             self.model,
             messages,
             context,
-            state={"stage": "generating"},
+            stream_text_transform=strip_tool_calls_for_streaming,
+            suppress_empty_stream_updates=True,
         )
 
         response = AIMessage(**try_parse_tool_calls(response_content))

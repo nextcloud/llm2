@@ -41,4 +41,4 @@ Output only the reformulated text, nothing else. Do not add an introductory sent
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=input_data['input'], tone=input_data['tone']).to_string())
         ]
-        return {'output': run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})}
+        return {'output': run_runnable_with_streaming(self.runnable, messages, context)}

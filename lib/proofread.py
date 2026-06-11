@@ -42,5 +42,5 @@ Give me the list of all mistakes in the above text in its original language. Do 
                 text=inputs['input']
             ))
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context, state={"stage": "generating"})
+        output = run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}
