@@ -1151,13 +1151,13 @@ vcr = ["vcrpy (>=7.0.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.27"
+version = "0.3.29"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "llama_cpp_python-0.3.27.tar.gz", hash = "sha256:b9eb9957de3776c2b1ae2beeccb52d5603e4e84afd94ae0d46bf96e04cbead6a"},
+    {file = "llama_cpp_python-0.3.29.tar.gz", hash = "sha256:21122165951bdc25ba27c0483a2f44082c860d89422945548c64df08b6029ce4"},
 ]
 
 [package.dependencies]
