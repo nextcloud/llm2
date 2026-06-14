@@ -132,7 +132,7 @@ def background_thread_task():
                     task["id"], error_message="Requested model is not available"
                 )
                 continue
-            task_processor = task_processor_loader()
+            task_processor = task_processor_loader(nc, task["id"])
             log(nc, LogLvl.INFO, "Generating reply")
             time_start = perf_counter()
             log(nc, LogLvl.INFO, task.get("input"))
