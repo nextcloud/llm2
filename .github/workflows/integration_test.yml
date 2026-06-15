@@ -123,12 +123,21 @@ jobs:
           pipx install poetry
           poetry install
 
+      - name: Cache llm2 models
+        uses: actions/cache/restore@v5
+        id: cache-llm2-models-restore
+        env:
+          cache-name: cache-llm2-models
+        with:
+          path: llm2-persistent_storage/
+          key: ${{ runner.os }}-llm2-models-${{ env.cache-name }}-${{ hashFiles('llm2/lib/main.py') }}
+
       - name: Install and init backend
         working-directory: ${{ env.APP_NAME }}/lib
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
-          poetry run python3 main.py > ../backend_logs 2>&1 &
+          APP_PERSISTENT_STORAGE="$(pwd)/../../llm2-persistent-storage/" poetry run python3 main.py > ../backend_logs 2>&1 &
 
       - name: Register backend
         run: |
@@ -155,6 +164,14 @@ jobs:
           done
           curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json
           [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
+
+      - name: Cache llm2 models
+        uses: actions/cache/save@v5
+        env:
+          cache-name: cache-llm2-models
+        with:
+          path: llm2-persistent_storage/
+          key: ${{ steps.cache-llm2-models-restore.outputs.cache-primary-key }}
 
       - name: Run streaming task
         if: matrix.server-versions == 'master'
