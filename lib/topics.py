@@ -10,6 +10,8 @@ from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
+from streaming import StreamContext, run_runnable_with_streaming
+
 class TopicsProcessor():
 
     runnable: Runnable
@@ -34,10 +36,10 @@ class TopicsProcessor():
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
+    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=inputs['input']).to_string())
         ]
-        output = self.runnable.invoke(messages).content
+        output = run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}

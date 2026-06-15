@@ -13,6 +13,7 @@ from threading import Event, Thread
 from time import perf_counter, sleep, strftime
 
 from niquests import RequestException
+from streaming import StreamContext
 from task_processors import generate_task_processors
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
@@ -23,6 +24,35 @@ from nc_py_api.ex_app.providers.task_processing import ShapeDescriptor, ShapeTyp
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', handlers=[logging.StreamHandler()])
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+class NextcloudTaskStreamResult:
+    def __init__(self, nc: NextcloudApp, task_id: int, enabled: bool):
+        self.nc = nc
+        self.task_id = task_id
+        self.enabled = enabled
+
+    def send(self, output: dict) -> None:
+        if not self.enabled:
+            return
+
+        try:
+            self.nc.ocs(
+                "POST",
+                f"/ocs/v2.php/taskprocessing/tasks_provider/{self.task_id}/stream-result",
+                json={"output": output},
+            )
+        except (NextcloudException, RequestException, JSONDecodeError) as e:
+            log(self.nc, LogLvl.WARNING, f"Streaming intermediate task output failed for task {self.task_id}: {e}")
+            self.enabled = False
+
+    def set_progress(self, progress: float) -> bool:
+        try:
+            self.nc.providers.task_processing.set_progress(self.task_id, progress)
+        except (NextcloudException, RequestException, JSONDecodeError) as e:
+            log(self.nc, LogLvl.WARNING, f"Updating progress failed for task {self.task_id}: {e}")
+            return False
+        return True
 
 def log(nc, level, content):
     logger.log((level+1)*10, content)
@@ -136,7 +166,12 @@ def background_thread_task():
             log(nc, LogLvl.INFO, "Generating reply")
             time_start = perf_counter()
             log(nc, LogLvl.INFO, task.get("input"))
-            result = task_processor(task.get("input"))
+            stream_result = NextcloudTaskStreamResult(nc, task["id"], bool(task.get("preferStreaming", None)))
+            stream_context = StreamContext(
+                stream_result=stream_result.send if stream_result.enabled else None,
+                progress_callback=stream_result.set_progress,
+            )
+            result = task_processor(task.get("input"), context=stream_context)
             log(nc, LogLvl.INFO, f"reply generated: {round(float(perf_counter() - time_start), 2)}s")
             log(nc, LogLvl.INFO, result)
             nc.providers.task_processing.report_result(

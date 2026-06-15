@@ -8,6 +8,8 @@ from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.runnables import Runnable
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+from streaming import StreamContext, run_runnable_with_streaming
+
 
 class SummarizeProcessor:
     runnable: Runnable
@@ -46,32 +48,50 @@ Summaries to combine:
             length_function=len,
         )
 
-    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
+    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         # Split text if needed
         splits = self.text_splitter.split_text(inputs['input'])
+        total_splits = len(splits)
 
         if len(splits) == 1:
             messages = [
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=splits[0]))
             ]
-            output = self.runnable.invoke(messages)
-            return {'output': output.content}
+            output = run_runnable_with_streaming(
+                self.runnable,
+                messages,
+                context,
+            )
+            return {'output': output}
 
         # Process each split
         summaries = []
-        for split in splits:
+        for index, split in enumerate(splits, start=1):
             messages = [
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=split))
             ]
             output = self.runnable.invoke(messages)
             summaries.append(output.content)
+            if context:
+                context.set_progress(index / (total_splits + 1) * 50)
 
         # Merge summaries
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.merge_prompt.format(input="\n\n".join(summaries)))
         ]
-        final_output = self.runnable.invoke(messages)
-        return {'output': final_output.content}
+        if context:
+            context.set_progress(total_splits / (total_splits + 1) * 50 + 50)
+
+        final_output = run_runnable_with_streaming(
+            self.runnable,
+            messages,
+            context,
+        )
+
+        if context:
+            context.set_progress(100)
+
+        return {'output': final_output}
