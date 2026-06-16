@@ -3,20 +3,33 @@
 """A chat chain
 """
 import json
+import hashlib
 import pprint
 import re
-from random import randint
 from typing import Any
 
 from langchain_community.chat_models import ChatLlamaCpp
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.messages.ai import AIMessage
+
+from streaming import StreamContext, run_runnable_with_streaming
 
 def generate_tool_call(tool_call: dict):
     content = '<tool_call>'
     content += json.dumps({"name": tool_call['name'], "arguments": tool_call['args']})
     content += '</tool_call>'
     return content
+
+
+def generate_tool_call_id(tool_call: dict) -> str:
+    stable_payload = json.dumps(
+        {
+            "name": tool_call.get("name"),
+            "args": tool_call.get("args", tool_call.get("arguments", {})),
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha1(stable_payload.encode("utf-8")).hexdigest()[:16]
 
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
@@ -40,7 +53,9 @@ def try_parse_tool_calls(content: str):
                 func['args'] = func['arguments']
                 del func['arguments']
             if not 'id' in func:
-                func['id'] = str(randint(1, 10000000000))
+                func['id'] = generate_tool_call_id(func)
+            if 'type' not in func:
+                func['type'] = 'tool_call'
             found = True
         except json.JSONDecodeError as e:
             print(f"Failed to parse tool calls: the content is {m.group(1)} and {e}")
@@ -66,7 +81,9 @@ def try_parse_tool_calls(content: str):
                     func['args'] = func['arguments']
                     del func['arguments']
                 if not 'id' in func:
-                    func['id'] = str(randint(1, 10000000000))
+                    func['id'] = generate_tool_call_id(func)
+                if 'type' not in func:
+                    func['type'] = 'tool_call'
             except json.JSONDecodeError as e:
                 print(f"Failed to parse tool calls: the content is {m.group(1)} and {e}")
                 pass
@@ -79,6 +96,31 @@ def try_parse_tool_calls(content: str):
         return {"role": "assistant", "content": c, "tool_calls": tool_calls}
     return {"role": "assistant", "content": re.sub(r"<\|im_end\|>$", "", content)}
 
+
+def strip_tool_calls_for_streaming(content: str) -> str:
+    sanitized = re.sub(r"<tool_call>.*?</tool_call>", "", content, flags=re.DOTALL)
+    sanitized = re.sub(r"```tool_call\n.*?\n```", "", sanitized, flags=re.DOTALL)
+
+    partial_markers = [index for index in (sanitized.find("<tool"), sanitized.find("```tool")) if index != -1]
+    if partial_markers:
+        sanitized = sanitized[:min(partial_markers)]
+
+    return re.sub(r"<\|im_end\|>$", "", sanitized)
+
+
+def build_streaming_payload(content: str) -> dict[str, Any] | None:
+    payload: dict[str, Any] = {}
+    cleaned_output = strip_tool_calls_for_streaming(content)
+    parsed_response = try_parse_tool_calls(content)
+    tool_calls = parsed_response.get('tool_calls')
+
+    if cleaned_output or tool_calls:
+        payload['output'] = cleaned_output
+    if tool_calls:
+        payload['tool_calls'] = json.dumps(tool_calls)
+
+    return payload or None
+
 class ChatWithToolsProcessor:
     """
 	A chat with tools processor that supports batch processing
@@ -89,7 +131,7 @@ class ChatWithToolsProcessor:
     def __init__(self, runner: ChatLlamaCpp):
         self.model = runner
 
-    def _process_single_input(self, input_data: dict[str, Any]) -> dict[str, Any]:
+    def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         system_prompt = """
 {downstream_system_prompt}
 
@@ -150,15 +192,20 @@ The following is a JSON specification of the tools you can call and their parame
             messages.append(HumanMessage(content=''))
 
         pprint.pprint(messages)
-        response = self.model.invoke(messages)
+        response_content = run_runnable_with_streaming(
+            self.model,
+            messages,
+            context,
+            stream_payload_transform=build_streaming_payload,
+            suppress_empty_stream_updates=True,
+        )
 
-        #if not response.tool_calls or len(response.tool_calls) == 0:
-        response = AIMessage(**try_parse_tool_calls(response.content))
+        response = AIMessage(**try_parse_tool_calls(response_content))
 
         return {
             'output': response.content,
             'tool_calls': json.dumps(response.tool_calls)
         }
 
-    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
-        return self._process_single_input(inputs)
+    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        return self._process_single_input(inputs, context)

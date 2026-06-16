@@ -123,12 +123,21 @@ jobs:
           pipx install poetry
           poetry install
 
+      - name: Cache llm2 models
+        uses: actions/cache/restore@v5
+        id: cache-llm2-models-restore
+        env:
+          cache-name: cache-llm2-models
+        with:
+          path: llm2-persistent_storage/
+          key: ${{ runner.os }}-llm2-models-${{ env.cache-name }}-${{ hashFiles('llm2/lib/main.py') }}
+
       - name: Install and init backend
         working-directory: ${{ env.APP_NAME }}/lib
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
-          poetry run python3 main.py > ../backend_logs 2>&1 &
+          APP_PERSISTENT_STORAGE="$(pwd)/../../llm2-persistent_storage/" poetry run python3 main.py > ../backend_logs 2>&1 &
 
       - name: Register backend
         run: |
@@ -155,6 +164,43 @@ jobs:
           done
           curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json
           [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
+
+      - name: Cache llm2 models
+        uses: actions/cache/save@v5
+        env:
+          cache-name: cache-llm2-models
+        with:
+          path: llm2-persistent_storage/
+          key: ${{ steps.cache-llm2-models-restore.outputs.cache-primary-key }}
+
+      - name: Run streaming task
+        if: matrix.server-versions == 'master'
+        env:
+          CREDS: "admin:password"
+        run: |
+          set -x
+          TASK=$(curl -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json --data-raw '{"input": {"input": "Count from 1 to 20 in words"},"type":"core:text2text", "appId": "test", "customId": "", "preferStreaming": true}')
+          echo $TASK
+          TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
+          NEXT_WAIT_TIME=0
+          TASK_STATUS='"STATUS_SCHEDULED"'
+          STREAMING_UPDATES=0
+          until [ $NEXT_WAIT_TIME -eq 35 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+            TASK=$(curl -u "$CREDS" -H "oCS-APIRequest: true" http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json)
+            echo $TASK
+            TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
+            echo $TASK_STATUS
+            TASK_OUTPUT=$(echo $TASK | jq -r '.ocs.data.task.output.output // ""')
+            if [ -n "$TASK_OUTPUT" ] && [ "$TASK_STATUS" != '"STATUS_SUCCESSFUL"' ] && [ "$TASK_STATUS" != '"STATUS_FAILED"' ]; then
+              STREAMING_UPDATES=$((STREAMING_UPDATES+1))
+              echo "Streaming update detected (count: $STREAMING_UPDATES)"
+            fi
+            sleep $(( NEXT_WAIT_TIME++ ))
+          done
+          echo "Final status: $TASK_STATUS"
+          echo "Total streaming updates detected: $STREAMING_UPDATES"
+          [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
+          [ $STREAMING_UPDATES -gt 0 ]
 
       - name: Show logs
         if: always()
