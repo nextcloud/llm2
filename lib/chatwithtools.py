@@ -114,10 +114,9 @@ def build_streaming_payload(content: str) -> dict[str, Any] | None:
     parsed_response = try_parse_tool_calls(content)
     tool_calls = parsed_response.get('tool_calls')
 
-    if cleaned_output:
+    if cleaned_output or tool_calls:
         payload['output'] = cleaned_output
     if tool_calls:
-        payload['output'] = cleaned_output
         payload['tool_calls'] = json.dumps(tool_calls)
 
     return payload or None
