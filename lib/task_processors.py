@@ -77,7 +77,7 @@ def _find_free_port() -> int:
 
 
 def _wait_for_server(port: int, timeout: float = 300.0) -> None:
-    url = f"http://127.0.0.1:{port}/health"
+    url = f"http://127.0.0.1:{port}/v1/models"
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -105,6 +105,8 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
     port = _find_free_port()
     model_alias = file_name.split(".gguf")[0]
 
+    n_batch = loader_config.get("n_batch", 512)
+
     cmd = [
         sys.executable, "-m", "llama_cpp.server",
         "--model", path,
@@ -113,6 +115,7 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
         "--port", str(port),
         "--n_ctx", str(loader_config["n_ctx"]),
         "--n_gpu_layers", str(n_gpu_layers),
+        "--n_batch", str(n_batch),
     ]
 
     logger.info(f"Starting llama-cpp-server for {file_name} on port {port}")

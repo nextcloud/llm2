@@ -62,6 +62,7 @@
         "prompt": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n{system_prompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n{user_prompt}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n",
         "loader_config": {
             "n_ctx": 24000,
+            "n_batch": 8,
             "max_tokens": 8192,
             "stop": ["<|eot_id|>"],
             "temperature": 0.7

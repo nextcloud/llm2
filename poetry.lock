@@ -1287,20 +1287,26 @@ vcr = ["vcrpy (>=7.0.0)"]
 
 [[package]]
 name = "llama-cpp-python"
-version = "0.3.29"
+version = "0.3.30"
 description = "Python bindings for the llama.cpp library"
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "llama_cpp_python-0.3.29.tar.gz", hash = "sha256:21122165951bdc25ba27c0483a2f44082c860d89422945548c64df08b6029ce4"},
+    {file = "llama_cpp_python-0.3.30.tar.gz", hash = "sha256:798c9b42652d2e0bff5fe81e7e762089f425a99e67f66ffe5ae156957876e0d1"},
 ]
 
 [package.dependencies]
 diskcache = ">=5.6.1"
+fastapi = {version = ">=0.100.0", optional = true, markers = "extra == \"server\""}
 jinja2 = ">=2.11.3"
 numpy = ">=1.20.0"
+pydantic-settings = {version = ">=2.0.1", optional = true, markers = "extra == \"server\""}
+PyYAML = {version = ">=5.1", optional = true, markers = "extra == \"server\""}
+sse-starlette = {version = ">=1.6.1", optional = true, markers = "extra == \"server\""}
+starlette-context = {version = ">=0.3.6,<0.4", optional = true, markers = "extra == \"server\""}
 typing-extensions = ">=4.5.0"
+uvicorn = {version = ">=0.22.0", optional = true, markers = "extra == \"server\""}
 
 [package.extras]
 all = ["llama_cpp_python[dev,server,test]"]
@@ -2787,6 +2793,21 @@ typing-extensions = {version = ">=4.10.0", markers = "python_version < \"3.13\""
 full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
 
 [[package]]
+name = "starlette-context"
+version = "0.3.6"
+description = "Middleware for Starlette that allows you to store and access the context data of a request. Can be used with logging so logs automatically use request headers such as x-request-id or x-correlation-id."
+optional = false
+python-versions = ">=3.8,<4.0"
+groups = ["main"]
+files = [
+    {file = "starlette_context-0.3.6-py3-none-any.whl", hash = "sha256:b14ce373fbb6895a2182a7104b9f63ba20c8db83444005fb9a844dd77ad9895c"},
+    {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
+]
+
+[package.dependencies]
+starlette = "*"
+
+[[package]]
 name = "tenacity"
 version = "9.1.2"
 description = "Retry code until it succeeds"
@@ -3563,4 +3584,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "71682cbf0a3e403fbf64fdd67eb756186c99330bef429ca77d3b5eeade8eb451"
+content-hash = "e2a0f98ead55af2a980a467a871abadb81507e9b8c3dbec37a11a2eb5b0ee572"
