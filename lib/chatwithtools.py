@@ -8,7 +8,7 @@ import pprint
 import re
 from typing import Any
 
-from langchain_community.chat_models import ChatLlamaCpp
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.messages.ai import AIMessage
 
@@ -126,9 +126,9 @@ class ChatWithToolsProcessor:
 	A chat with tools processor that supports batch processing
 	"""
 
-    model: ChatLlamaCpp
+    model: BaseChatModel
 
-    def __init__(self, runner: ChatLlamaCpp):
+    def __init__(self, runner: BaseChatModel):
         self.model = runner
 
     def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:

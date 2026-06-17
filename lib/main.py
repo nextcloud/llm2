@@ -14,7 +14,7 @@ from time import perf_counter, sleep, strftime
 
 from niquests import RequestException
 from streaming import StreamContext
-from task_processors import generate_task_processors
+from task_processors import generate_task_processors, stop_all_servers
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, persistent_storage, run_app, set_handlers
@@ -102,6 +102,7 @@ async def lifespan(_app: FastAPI):
     SHUTDOWN_EVENT_RECEIVED.set()
     trigger.set()
     SHUTDOWN_CLEAR.wait()
+    stop_all_servers()
 
 
 APP = FastAPI(lifespan=lifespan)

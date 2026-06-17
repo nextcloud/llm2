@@ -4,13 +4,17 @@
 """
 
 import json
+import logging
 import os
+import socket
+import subprocess
+import sys
+import time
 from functools import cache
+from threading import Thread
 
-from langchain_community.chat_models import ChatLlamaCpp
-
-from langchain.prompts import PromptTemplate
-from langchain_community.llms import LlamaCpp
+import niquests
+from langchain_openai import ChatOpenAI
 from nc_py_api.ex_app import persistent_storage
 
 from chat import ChatProcessor
@@ -27,6 +31,22 @@ from summarize import SummarizeProcessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
+
+# Maps file_name -> (Popen, port) for cleanup on shutdown
+_server_processes: dict[str, tuple[subprocess.Popen, int]] = {}
+
+logger = logging.getLogger(__name__)
+
+
+def _pipe_to_logger(stream, model_name: str) -> None:
+    """Forward a subprocess pipe line-by-line to the Python logger."""
+    prefix = f"[llama-cpp-server:{model_name}] "
+    try:
+        for line in stream:
+            logger.info(prefix + line.rstrip())
+    except Exception:
+        pass
+
 
 def get_model_config(file_name):
     file_name = file_name.split('.gguf')[0]
@@ -50,64 +70,92 @@ def get_model_config(file_name):
     return model_config
 
 
+def _find_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _wait_for_server(port: int, timeout: float = 300.0) -> None:
+    url = f"http://127.0.0.1:{port}/health"
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            resp = niquests.get(url, timeout=5)
+            if resp.status_code == 200:
+                return
+        except Exception:
+            pass
+        time.sleep(2)
+    raise RuntimeError(f"llama-cpp-server on port {port} did not become ready within {timeout}s")
+
+
 @cache
-def generate_llm(file_name):
+def generate_chat_model(file_name: str) -> ChatOpenAI:
     model_config = get_model_config(file_name)
+    loader_config = model_config["loader_config"]
 
     path = os.path.join(models_folder_path, file_name)
-
     if not os.path.exists(path):
         path = os.path.join(persistent_storage(), file_name)
 
     compute_device = os.getenv("COMPUTE_DEVICE", "CUDA")
-    try:
-        llm = LlamaCpp(
-            model_path=path,
-            **{
-                "n_gpu_layers": (0, -1)[compute_device != "CPU"],
-                **model_config["loader_config"],
-            },
-        )
-    except Exception as e:
-        print(f"Failed to load model '{path}' with compute device '{compute_device}'")
-        raise e
+    n_gpu_layers = -1 if compute_device != "CPU" else 0
 
-    return llm
+    port = _find_free_port()
+    model_alias = file_name.split(".gguf")[0]
 
-@cache
-def generate_llm_chain(file_name):
-    model_config = get_model_config(file_name)
-    print(model_config)
-    llm = generate_llm(file_name)
+    cmd = [
+        sys.executable, "-m", "llama_cpp.server",
+        "--model", path,
+        "--model_alias", model_alias,
+        "--host", "127.0.0.1",
+        "--port", str(port),
+        "--n_ctx", str(loader_config["n_ctx"]),
+        "--n_gpu_layers", str(n_gpu_layers),
+    ]
 
-    prompt = PromptTemplate.from_template(model_config['prompt'])
+    logger.info(f"Starting llama-cpp-server for {file_name} on port {port}")
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    Thread(target=_pipe_to_logger, args=(proc.stdout, model_alias), daemon=True).start()
+    _server_processes[file_name] = (proc, port)
 
-    return prompt | llm
+    _wait_for_server(port)
+    logger.info(f"llama-cpp-server for {file_name} ready on port {port}")
 
-@cache
-def generate_chat_chain(file_name):
-    model_config = get_model_config(file_name)
+    model_kwargs: dict = {}
+    if loader_config.get("stop"):
+        model_kwargs["stop"] = loader_config["stop"]
 
-    path = os.path.join(models_folder_path, file_name)
+    return ChatOpenAI(
+        base_url=f"http://127.0.0.1:{port}/v1",
+        api_key="not-needed",
+        model=model_alias,
+        max_tokens=loader_config.get("max_tokens", 2048),
+        temperature=loader_config.get("temperature", 0.7),
+        model_kwargs=model_kwargs,
+    )
 
-    if not os.path.exists(path):
-        path = os.path.join(persistent_storage(), file_name)
 
-    compute_device = os.getenv("COMPUTE_DEVICE", "CUDA")
-    try:
-        llm = ChatLlamaCpp(
-            model_path=path,
-            n_batch=1,
-            **{
-                "n_gpu_layers": (0, -1)[compute_device != "CPU"],
-                **model_config["loader_config"],
-            },
-        )
-    except Exception as e:
-        print(f"Failed to load model '{path}' with compute device '{compute_device}'")
-        raise e
-
-    return llm
+def stop_all_servers() -> None:
+    for file_name, (proc, port) in _server_processes.items():
+        logger.info(f"Stopping llama-cpp-server for {file_name} (port {port})")
+        try:
+            proc.terminate()
+            proc.wait(timeout=15)
+        except Exception as e:
+            logger.warning(f"Error stopping server for {file_name}: {e}")
+            try:
+                proc.kill()
+            except Exception:
+                pass
+    _server_processes.clear()
 
 
 def generate_task_processors(task_processors = {}):
@@ -130,16 +178,14 @@ def generate_task_processors_for_model(file_name, task_processors):
     model_name = file_name.split('.gguf')[0]
     n_ctx = get_model_config(file_name)["loader_config"]["n_ctx"]
 
-    task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_chat_chain(file_name), n_ctx)
-    task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:topics"] = lambda: TopicsProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:simplification"] = lambda: SimplifyProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:reformulation"] = lambda: ReformulateProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:contextwrite"] = lambda: ContextWriteProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:chat"] = lambda: ChatProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_chain(file_name))
-    task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_chain(file_name))
-    
-    # chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
+    task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_chat_model(file_name), n_ctx)
+    task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:topics"] = lambda: TopicsProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:simplification"] = lambda: SimplifyProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:reformulation"] = lambda: ReformulateProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:contextwrite"] = lambda: ContextWriteProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:chat"] = lambda: ChatProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_model(file_name))

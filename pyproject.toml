@@ -16,7 +16,8 @@ nc-py-api = {extras = ["app"], version = ">=0.24.2,<0.31.0"}
 langchain = "^0.3.27"
 niquests = "^3.18.5"
 langchain-community = "^0.3.24"
-llama-cpp-python = "^0.3.20"
+langchain-openai = "^0.3"
+llama-cpp-python = {version = "^0.3.20", extras = ["server"]}
 
 
 [build-system]
