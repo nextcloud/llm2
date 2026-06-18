@@ -131,7 +131,7 @@ class ChatWithToolsProcessor:
     def __init__(self, runner: BaseChatModel):
         self.model = runner
 
-    def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+    async def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         system_prompt = """
 {downstream_system_prompt}
 
@@ -192,7 +192,7 @@ The following is a JSON specification of the tools you can call and their parame
             messages.append(HumanMessage(content=''))
 
         pprint.pprint(messages)
-        response_content = run_runnable_with_streaming(
+        response_content = await run_runnable_with_streaming(
             self.model,
             messages,
             context,
@@ -207,5 +207,5 @@ The following is a JSON specification of the tools you can call and their parame
             'tool_calls': json.dumps(response.tool_calls)
         }
 
-    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
-        return self._process_single_input(inputs, context)
+    async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        return await self._process_single_input(inputs, context)

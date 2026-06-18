@@ -19,12 +19,12 @@ class FreePromptProcessor:
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(
+    async def __call__(
             self,
             inputs: dict[str, Any],
             context: StreamContext | None = None,
     ) -> dict[str, Any]:
-        output = run_runnable_with_streaming(self.runnable, [
+        output = await run_runnable_with_streaming(self.runnable, [
             SystemMessage(self.system_prompt),
             HumanMessage(inputs['input'])
         ], context)

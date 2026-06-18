@@ -36,10 +36,10 @@ class TopicsProcessor():
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+    async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=inputs['input']).to_string())
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context)
+        output = await run_runnable_with_streaming(self.runnable, messages, context)
         return {'output': output}

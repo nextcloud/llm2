@@ -116,6 +116,7 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
         "--n_ctx", str(loader_config["n_ctx"]),
         "--n_gpu_layers", str(n_gpu_layers),
         "--n_batch", str(n_batch),
+        "--interrupt_requests", 'False',
     ]
 
     logger.info(f"Starting llama-cpp-server for {file_name} on port {port}")

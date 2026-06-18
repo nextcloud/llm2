@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from time import monotonic
-from typing import Any, Callable
+from typing import Any, Awaitable, Callable
 
 
 def extract_text_content(value: Any) -> str:
@@ -34,8 +35,8 @@ def extract_text_content(value: Any) -> str:
 
 @dataclass
 class StreamContext:
-    stream_result: Callable[[dict[str, Any]], None] | None = None
-    progress_callback: Callable[[float], Any] | None = None
+    stream_result: Callable[[dict[str, Any]], Awaitable[None] | None] | None = None
+    progress_callback: Callable[[float], Awaitable[Any] | Any] | None = None
     stream_interval_seconds: float = 0.75
     current_output: dict[str, Any] = field(default_factory=dict)
     _last_emit_at: float = field(default=0.0, init=False)
@@ -80,17 +81,24 @@ class StreamContext:
         if payload == self._last_emitted_output:
             return
 
-        self.stream_result(payload)
+        if asyncio.iscoroutinefunction(self.stream_result):
+            asyncio.ensure_future(self.stream_result(payload))
+        else:
+            self.stream_result(payload)
         self._last_emit_at = now
         self._last_emitted_output = payload
 
     def set_progress(self, progress: float) -> Any:
         if self.progress_callback is None:
             return True
-        return self.progress_callback(progress)
+        result = self.progress_callback(progress)
+        if asyncio.iscoroutine(result):
+            asyncio.ensure_future(result)
+            return True
+        return result
 
 
-def run_runnable_with_streaming(
+async def run_runnable_with_streaming(
     runnable: Any,
     messages: list[Any],
     context: StreamContext | None = None,
@@ -104,7 +112,7 @@ def run_runnable_with_streaming(
     if context and context.enabled:
         chunks: list[str] = []
 
-        for chunk in runnable.stream(messages):
+        async for chunk in runnable.astream(messages):
             text_chunk = extract_text_content(chunk)
             if not text_chunk:
                 continue
@@ -150,5 +158,4 @@ def run_runnable_with_streaming(
         )
         return output
 
-    return extract_text_content(runnable.invoke(messages))
-
+    return extract_text_content(await runnable.ainvoke(messages))

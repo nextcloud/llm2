@@ -35,10 +35,9 @@ Output only the reformulated text, nothing else. Do not add an introductory sent
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, input_data: dict, context: StreamContext | None = None) -> dict[str, Any]:
-        """Process a single input"""
+    async def __call__(self, input_data: dict, context: StreamContext | None = None) -> dict[str, Any]:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=input_data['input'], tone=input_data['tone']).to_string())
         ]
-        return {'output': run_runnable_with_streaming(self.runnable, messages, context)}
+        return {'output': await run_runnable_with_streaming(self.runnable, messages, context)}

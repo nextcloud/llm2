@@ -20,7 +20,7 @@ class ChatProcessor:
     def __init__(self, runner: Runnable):
         self.runnable = runner
 
-    def __call__(
+    async def __call__(
             self,
             inputs: dict[str, Any],
             context: StreamContext | None = None,
@@ -33,7 +33,7 @@ class ChatProcessor:
             for message in [json.loads(message) for message in inputs['history']]
         ] + [('human', inputs['input'])]
         return {
-            'output': run_runnable_with_streaming(
+            'output': await run_runnable_with_streaming(
                 self.runnable,
                 messages,
                 context,
