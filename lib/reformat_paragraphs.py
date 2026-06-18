@@ -7,22 +7,24 @@ from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
+from lib.streaming import StreamContext
+
 
 class ReformatParagraphsProcessor:
     """
     Segments text by subject changes; model returns anchor phrases only.
     """
     system_prompt = (
-        "You segment continuous text by subject changes and output anchor phrases only."
+        "You output anchors from a continuous text based on subject changes."
     )
 
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["text"],
-        template="""You will receive a continuous block of text without line breaks. Your task is to identify points in the text where the subject or topic changes (e.g., a shift to a new person, place, concept, or thematic focus) and insert a line break at that specific transition.
+        template="""You will receive a continuous block of text without line breaks. Your task is to identify points in the text where the subject or topic changes (e.g., a shift to a new person, place, concept, or thematic focus).
 
 Do NOT break lines based on sentence length or grammar unless the subject actually changes.
 
-Once you have identified these segments, do NOT output the full text. Instead, for each new line created by a subject change, output ONLY the first 3-5 words of that line. These serve as anchors for programmatic retrieval.
+Once you have identified these segments, do NOT output the full text. Instead, for each paragraph created, output ONLY the first 3-5 words verbatim of that paragraph. These serve as anchors for programmatic retrieval.
 
 Format your output as a plain list of these anchor words, one per line. Do not include numbers, bullet points, or any additional commentary.
 
@@ -78,7 +80,7 @@ Continuous text to segment:
             search_offset = pos + len(anchor)
         return result
 
-    def __call__(self, inputs: dict[str, Any]) -> dict[str, Any]:
+    def __call__(self, inputs: dict[str, Any], context: StreamContext) -> dict[str, Any]:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format(
