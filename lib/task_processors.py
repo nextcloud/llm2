@@ -10,6 +10,7 @@ import socket
 import subprocess
 import sys
 import time
+from collections import deque
 from functools import cache
 from threading import Thread
 
@@ -38,14 +39,23 @@ _server_processes: dict[str, tuple[subprocess.Popen, int]] = {}
 logger = logging.getLogger(__name__)
 
 
-def _pipe_to_logger(stream, model_name: str) -> None:
-    """Forward a subprocess pipe line-by-line to the Python logger."""
-    prefix = f"[llama-cpp-server:{model_name}] "
-    try:
-        for line in stream:
-            logger.info(prefix + line.rstrip())
-    except Exception:
-        pass
+class _ServerLogPipe:
+    """Forward a subprocess pipe to the logger, keeping the last lines for error context."""
+    def __init__(self, model_name: str, tail_lines: int = 50) -> None:
+        self.prefix = f"[llama-cpp-server:{model_name}] "
+        self._tail: deque[str] = deque(maxlen=tail_lines)
+
+    def consume(self, stream) -> None:
+        try:
+            for line in stream:
+                line = line.rstrip()
+                self._tail.append(line)
+                logger.info(self.prefix + line)
+        except Exception:
+            pass
+
+    def tail(self) -> str:
+        return "\n".join(self._tail)
 
 
 def get_model_config(file_name):
@@ -80,10 +90,16 @@ def _find_free_port() -> int:
         return s.getsockname()[1]
 
 
-def _wait_for_server(port: int, timeout: float = 300.0) -> None:
+def _wait_for_server(proc: subprocess.Popen, port: int, log_pipe: _ServerLogPipe, timeout: float = 300.0) -> None:
     url = f"http://127.0.0.1:{port}/health"
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
+        exit_code = proc.poll()
+        if exit_code is not None:
+            raise RuntimeError(
+                f"llama-server exited with code {exit_code} before becoming ready. "
+                f"Last output:\n{log_pipe.tail()}"
+            )
         try:
             resp = niquests.get(url, timeout=5)
             if resp.status_code == 200:
@@ -91,7 +107,10 @@ def _wait_for_server(port: int, timeout: float = 300.0) -> None:
         except Exception:
             pass
         time.sleep(2)
-    raise RuntimeError(f"llama-server on port {port} did not become ready within {timeout}s")
+    raise RuntimeError(
+        f"llama-server on port {port} did not become ready within {timeout}s. "
+        f"Last output:\n{log_pipe.tail()}"
+    )
 
 
 # Inline script run in the server subprocess. Kept as a module-level constant so it
@@ -143,17 +162,34 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
     })
 
     logger.info(f"Starting llama-server for {file_name} on port {port}")
-    proc = subprocess.Popen(
-        [sys.executable, "-c", _SERVER_SCRIPT, server_config],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
-    )
-    Thread(target=_pipe_to_logger, args=(proc.stdout, model_alias), daemon=True).start()
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, "-c", _SERVER_SCRIPT, server_config],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+    except OSError as e:
+        raise RuntimeError(f"Failed to spawn llama-server subprocess for {file_name}: {e}") from e
+
+    log_pipe = _ServerLogPipe(model_alias)
+    Thread(target=log_pipe.consume, args=(proc.stdout,), daemon=True).start()
     _server_processes[file_name] = (proc, port)
 
-    _wait_for_server(port)
+    try:
+        _wait_for_server(proc, port, log_pipe)
+    except Exception:
+        _server_processes.pop(file_name, None)
+        try:
+            proc.terminate()
+            proc.wait(timeout=5)
+        except Exception:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+        raise
     logger.info(f"llama-cpp-server for {file_name} ready on port {port}")
 
     model_kwargs: dict = {}
