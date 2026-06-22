@@ -192,19 +192,22 @@ The following is a JSON specification of the tools you can call and their parame
             messages.append(HumanMessage(content=''))
 
         pprint.pprint(messages)
+        reasoning_sink: dict[str, str] = {}
         response_content = await run_runnable_with_streaming(
             self.model,
             messages,
             context,
             stream_payload_transform=build_streaming_payload,
             suppress_empty_stream_updates=True,
+            reasoning_sink=reasoning_sink,
         )
 
         response = AIMessage(**try_parse_tool_calls(response_content))
 
         return {
             'output': response.content,
-            'tool_calls': json.dumps(response.tool_calls)
+            'tool_calls': json.dumps(response.tool_calls),
+            'reasoning': reasoning_sink.get('reasoning', ''),
         }
 
     async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
