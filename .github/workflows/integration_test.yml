@@ -106,6 +106,14 @@ jobs:
           ./occ maintenance:install --verbose --database=${{ matrix.databases }} --database-name=nextcloud --database-host=127.0.0.1 --database-port=$PGSQL_PORT --database-user=root --database-pass=rootpassword --admin-user admin --admin-pass password
           composer run serve &
 
+      - name: Checkout app_api
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          path: apps/app_api/
+          repository: nextcloud/app_api
+          ref: ${{ matrix.server-versions == 'master' && 'main' || matrix.server-versions }}
+          persist-credentials: false
+
       - name: Enable app and app_api
         run: ./occ app:enable -vvv -f app_api
 
