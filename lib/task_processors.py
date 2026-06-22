@@ -70,6 +70,10 @@ def get_model_config(file_name):
     return model_config
 
 
+def get_n_parallel(model_name: str) -> int:
+    return get_model_config(model_name)["loader_config"].get("n_parallel", 1)
+
+
 def _find_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 0))
@@ -77,7 +81,7 @@ def _find_free_port() -> int:
 
 
 def _wait_for_server(port: int, timeout: float = 300.0) -> None:
-    url = f"http://127.0.0.1:{port}/v1/models"
+    url = f"http://127.0.0.1:{port}/health"
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
@@ -87,7 +91,30 @@ def _wait_for_server(port: int, timeout: float = 300.0) -> None:
         except Exception:
             pass
         time.sleep(2)
-    raise RuntimeError(f"llama-cpp-server on port {port} did not become ready within {timeout}s")
+    raise RuntimeError(f"llama-server on port {port} did not become ready within {timeout}s")
+
+
+# Inline script run in the server subprocess. Kept as a module-level constant so it
+# is easy to read and not reconstructed on every call.
+_SERVER_SCRIPT = """\
+import sys, json, time
+import xllamacpp as xlc
+
+cfg = json.loads(sys.argv[1])
+p = xlc.CommonParams()
+p.model.path = cfg["model_path"]
+p.hostname = cfg["hostname"]
+p.port = cfg["port"]
+p.n_ctx = cfg["n_ctx"]
+p.n_gpu_layers = cfg["n_gpu_layers"]
+p.n_batch = cfg["n_batch"]
+p.n_parallel = cfg["n_parallel"]
+p.cont_batching = True
+
+server = xlc.Server(p)  # starts the C++ server in a background thread
+while True:
+    time.sleep(3600)
+"""
 
 
 @cache
@@ -105,23 +132,19 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
     port = _find_free_port()
     model_alias = file_name.split(".gguf")[0]
 
-    n_batch = loader_config.get("n_batch", 512)
+    server_config = json.dumps({
+        "model_path": path,
+        "hostname": "127.0.0.1",
+        "port": port,
+        "n_ctx": loader_config["n_ctx"],
+        "n_gpu_layers": n_gpu_layers,
+        "n_batch": loader_config.get("n_batch", 512),
+        "n_parallel": loader_config.get("n_parallel", 1),
+    })
 
-    cmd = [
-        sys.executable, "-m", "llama_cpp.server",
-        "--model", path,
-        "--model_alias", model_alias,
-        "--host", "127.0.0.1",
-        "--port", str(port),
-        "--n_ctx", str(loader_config["n_ctx"]),
-        "--n_gpu_layers", str(n_gpu_layers),
-        "--n_batch", str(n_batch),
-        "--interrupt_requests", 'False',
-    ]
-
-    logger.info(f"Starting llama-cpp-server for {file_name} on port {port}")
+    logger.info(f"Starting llama-server for {file_name} on port {port}")
     proc = subprocess.Popen(
-        cmd,
+        [sys.executable, "-c", _SERVER_SCRIPT, server_config],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,

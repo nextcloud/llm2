@@ -104,6 +104,16 @@
             "temperature": 0.3
         }
     },
+     "gemma-4-E4B-it-Q4_K_S.gguf": {
+        "prompt": "<|endoftext|><|system|>\n{system_prompt}\n<|user|>\n{system_prompt}\n{user_prompt}\n<|assistant|>\n",
+        "loader_config": {
+            "n_parallel": 4,
+            "n_ctx": 4096,
+            "max_tokens": 2048,
+            "stop": ["<|endoftext|>"],
+            "temperature": 0.7
+        }
+    },
     "default": {
         "prompt": "<|im_start|> system\n{system_prompt}\n<|im_end|>\n<|im_start|> user\n{user_prompt}\n<|im_end|>\n<|im_start|> assistant\n",
         "loader_config": {
