@@ -14,7 +14,7 @@ from threading import Event
 
 from niquests import RequestException
 from streaming import StreamContext
-from task_processors import generate_task_processors, stop_all_servers
+from task_processors import generate_task_processors, get_n_parallel, stop_all_servers
 from fastapi import FastAPI
 from nc_py_api import AsyncNextcloudApp, NextcloudApp, NextcloudException
 from nc_py_api.ex_app import LogLvl, persistent_storage, run_app, set_handlers
@@ -78,6 +78,12 @@ trigger = asyncio.Event()
 NUM_RUNNING_TASKS = 0
 NUM_RUNNING_TASKS_LOCK = asyncio.Lock()
 
+# Per-model in-flight counter, bounded by each model's n_parallel. Keeps NC from
+# marking tasks "running" while they are merely queued in llama-cpp-server.
+MODEL_INFLIGHT: dict[str, int] = {}
+MODEL_INFLIGHT_LOCK = asyncio.Lock()
+MODEL_SLOT_FREED = asyncio.Event()
+
 SHUTDOWN_EVENT = asyncio.Event()
 
 try:
@@ -105,14 +111,29 @@ async def wait_for_tasks(interval: float | None = None) -> None:
     trigger.clear()
 
 
+def _model_of(processor_name: str) -> str:
+    return processor_name.split(":", 1)[0]
+
+
+async def available_provider_ids(task_processors: dict) -> list[str]:
+    async with MODEL_INFLIGHT_LOCK:
+        return [
+            "llm2:" + name
+            for name in task_processors
+            if MODEL_INFLIGHT.get(_model_of(name), 0) < get_n_parallel(_model_of(name))
+        ]
+
+
 async def handle_task(task: dict, provider: dict, nc: AsyncNextcloudApp, task_processors: dict) -> None:
     global NUM_RUNNING_TASKS
+
+    task_processor_name = provider["name"][5:]
+    model_name = _model_of(task_processor_name)
 
     async with NUM_RUNNING_TASKS_LOCK:
         NUM_RUNNING_TASKS += 1
 
     try:
-        task_processor_name = provider["name"][5:]
         await log(nc, LogLvl.INFO, f"Processing: {task_processor_name}")
 
         task_processor_loader = task_processors.get(task_processor_name)
@@ -151,6 +172,9 @@ async def handle_task(task: dict, provider: dict, nc: AsyncNextcloudApp, task_pr
     finally:
         async with NUM_RUNNING_TASKS_LOCK:
             NUM_RUNNING_TASKS -= 1
+        async with MODEL_INFLIGHT_LOCK:
+            MODEL_INFLIGHT[model_name] = max(0, MODEL_INFLIGHT.get(model_name, 0) - 1)
+        MODEL_SLOT_FREED.set()
 
 
 async def background_task_loop() -> None:
@@ -158,7 +182,6 @@ async def background_task_loop() -> None:
     task_processors = generate_task_processors()
     last_scan = time.monotonic()
 
-    provider_ids = {"llm2:" + n for n in task_processors}
     task_type_ids = {n.split(":", 1)[1] for n in task_processors}
 
     while not app_enabled.is_set():
@@ -172,13 +195,23 @@ async def background_task_loop() -> None:
 
             if time.monotonic() - last_scan >= SCAN_INTERVAL:
                 task_processors = generate_task_processors(task_processors)
-                provider_ids = {"llm2:" + n for n in task_processors}
                 task_type_ids = {n.split(":", 1)[1] for n in task_processors}
                 last_scan = time.monotonic()
 
+            available = await available_provider_ids(task_processors)
+            if not available:
+                # Every model is at its n_parallel cap. Wait for a slot to free
+                # rather than pulling tasks NC would otherwise mark "running".
+                try:
+                    await asyncio.wait_for(MODEL_SLOT_FREED.wait(), timeout=CHECK_INTERVAL)
+                except asyncio.TimeoutError:
+                    pass
+                MODEL_SLOT_FREED.clear()
+                continue
+
             try:
                 response = await nc.providers.task_processing.next_task(
-                    list(provider_ids), list(task_type_ids)
+                    available, list(task_type_ids)
                 )
             except (NextcloudException, RequestException, JSONDecodeError) as e:
                 await log(nc, LogLvl.ERROR, f"Network error fetching the next task: {e}")
@@ -193,6 +226,12 @@ async def background_task_loop() -> None:
                 else:
                     await asyncio.sleep(2)
                 continue
+
+            # Reserve the slot synchronously, before yielding to the loop again,
+            # so the next available_provider_ids() call sees this task counted.
+            pulled_model = _model_of(response["provider"]["name"][5:])
+            async with MODEL_INFLIGHT_LOCK:
+                MODEL_INFLIGHT[pulled_model] = MODEL_INFLIGHT.get(pulled_model, 0) + 1
 
             tg.create_task(handle_task(response["task"], response["provider"], nc, task_processors))
     # TaskGroup exits only after all spawned handle_task coroutines finish — graceful drain on shutdown
