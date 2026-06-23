@@ -74,6 +74,9 @@ models_to_fetch = {
 app_enabled = Event()
 # asyncio.Event: set from the async trigger_handler and on shutdown
 trigger = asyncio.Event()
+# Signals the polling loop to re-scan models on the next iteration — set by enabled_handler
+# so newly available providers are picked up immediately instead of waiting up to SCAN_INTERVAL.
+REFRESH_PROCESSORS = asyncio.Event()
 
 NUM_RUNNING_TASKS = 0
 NUM_RUNNING_TASKS_LOCK = asyncio.Lock()
@@ -178,6 +181,16 @@ async def handle_task(task: dict, provider: dict, nc: AsyncNextcloudApp, task_pr
 
 
 async def background_task_loop() -> None:
+    try:
+        await _background_task_loop_inner()
+    except Exception:
+        # Without this, an unhandled exception in the bg task is silenced until shutdown awaits it,
+        # leaving the polling loop dead with no log line — backend looks healthy but never claims tasks.
+        logger.exception("background_task_loop crashed")
+        raise
+
+
+async def _background_task_loop_inner() -> None:
     nc = AsyncNextcloudApp()
     task_processors = generate_task_processors()
     last_scan = time.monotonic()
@@ -193,10 +206,11 @@ async def background_task_loop() -> None:
                 await asyncio.sleep(5)
                 continue
 
-            if time.monotonic() - last_scan >= SCAN_INTERVAL:
+            if REFRESH_PROCESSORS.is_set() or time.monotonic() - last_scan >= SCAN_INTERVAL:
                 task_processors = generate_task_processors(task_processors)
                 task_type_ids = {n.split(":", 1)[1] for n in task_processors}
                 last_scan = time.monotonic()
+                REFRESH_PROCESSORS.clear()
 
             available = await available_provider_ids(task_processors)
             if not available:
@@ -293,6 +307,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                 await nc.providers.task_processing.register(provider)
                 await log(nc, LogLvl.INFO, f"Registered {task_processor_name}")
                 app_enabled.set()
+                REFRESH_PROCESSORS.set()
             except Exception as e:
                 await log(nc, LogLvl.ERROR, f"Failed to register {model} - {task}, Error: {e}\n")
                 break
