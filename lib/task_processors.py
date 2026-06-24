@@ -24,6 +24,7 @@ from change_tone import ChangeToneProcessor
 from chatwithtools import ChatWithToolsProcessor
 from topics import TopicsProcessor
 from summarize import SummarizeProcessor
+from reformat_paragraphs import ReformatParagraphsProcessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
@@ -141,5 +142,6 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_chain(file_name))
     task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_chain(file_name))
+    task_processors[model_name + ":core:text2text:reformatparagraphs"] = lambda: ReformatParagraphsProcessor(generate_chat_chain(file_name))
     
     # chains[model_name + ":core:contextwrite"] = lambda: ContextWriteChain(llm_chain=llm_chain())
