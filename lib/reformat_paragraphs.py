@@ -7,7 +7,7 @@ from langchain.schema.prompt_template import BasePromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
-from lib.streaming import StreamContext
+from streaming import StreamContext
 
 
 class ReformatParagraphsProcessor:
