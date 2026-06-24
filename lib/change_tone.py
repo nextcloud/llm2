@@ -40,4 +40,11 @@ Output only the reformulated text, nothing else. Do not add an introductory sent
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=input_data['input'], tone=input_data['tone']).to_string())
         ]
-        return {'output': await run_runnable_with_streaming(self.runnable, messages, context)}
+        reasoning_sink: dict[str, str] = {}
+        output = await run_runnable_with_streaming(
+            self.runnable,
+            messages,
+            context,
+            reasoning_sink=reasoning_sink,
+        )
+        return {'output': output, 'reasoning': reasoning_sink.get('reasoning', '')}

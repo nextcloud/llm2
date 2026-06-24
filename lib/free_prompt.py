@@ -24,8 +24,14 @@ class FreePromptProcessor:
             inputs: dict[str, Any],
             context: StreamContext | None = None,
     ) -> dict[str, Any]:
-        output = await run_runnable_with_streaming(self.runnable, [
-            SystemMessage(self.system_prompt),
-            HumanMessage(inputs['input'])
-        ], context)
-        return {'output': output}
+        reasoning_sink: dict[str, str] = {}
+        output = await run_runnable_with_streaming(
+            self.runnable,
+            [
+                SystemMessage(self.system_prompt),
+                HumanMessage(inputs['input'])
+            ],
+            context,
+            reasoning_sink=reasoning_sink,
+        )
+        return {'output': output, 'reasoning': reasoning_sink.get('reasoning', '')}

@@ -302,7 +302,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                     ] if task == "core:text2text:chat" else [],
                     optional_output_shape=[
                         ShapeDescriptor(name="reasoning", description="Reasoning trace produced by the model, if any", shape_type=ShapeType.TEXT)
-                    ] if task in ("core:text2text:chat", "core:text2text:chatwithtools") else [],
+                    ] if task != "core:text2text:summary" else [],
                 )
                 await nc.providers.task_processing.register(provider)
                 await log(nc, LogLvl.INFO, f"Registered {task_processor_name}")

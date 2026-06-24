@@ -41,5 +41,11 @@ class TopicsProcessor():
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format_prompt(text=inputs['input']).to_string())
         ]
-        output = await run_runnable_with_streaming(self.runnable, messages, context)
-        return {'output': output}
+        reasoning_sink: dict[str, str] = {}
+        output = await run_runnable_with_streaming(
+            self.runnable,
+            messages,
+            context,
+            reasoning_sink=reasoning_sink,
+        )
+        return {'output': output, 'reasoning': reasoning_sink.get('reasoning', '')}
