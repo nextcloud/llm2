@@ -145,6 +145,7 @@ jobs:
         env:
           APP_VERSION: ${{ fromJson(steps.appinfo.outputs.result).version }}
         run: |
+          mkdir -p "$(pwd)/../../llm2-persistent_storage/"
           APP_PERSISTENT_STORAGE="$(pwd)/../../llm2-persistent_storage/" poetry run python3 main.py > ../backend_logs 2>&1 &
 
       - name: Register backend
