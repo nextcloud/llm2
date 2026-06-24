@@ -131,8 +131,8 @@ jobs:
           pipx install poetry
           poetry install
           # pyproject.toml pins xllamacpp to the cu128 wheel, which needs libcuda.so.1 at import
-          # time. The CI runner has no NVIDIA driver, so we swap in the CPU wheel for tests.
-          poetry run pip install --force-reinstall --no-deps --index-url https://xorbitsai.github.io/xllamacpp/whl/cpu xllamacpp
+          # time. The CI runner has no NVIDIA driver, so we swap in the PyPI CPU build for tests.
+          poetry run pip install --force-reinstall --no-deps xllamacpp
 
       - name: Cache llm2 models
         uses: actions/cache/restore@v5
