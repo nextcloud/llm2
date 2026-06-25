@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """A chat chain
 """
+import ast
 import json
 import hashlib
 import pprint
@@ -31,6 +32,32 @@ def generate_tool_call_id(tool_call: dict) -> str:
     )
     return hashlib.sha1(stable_payload.encode("utf-8")).hexdigest()[:16]
 
+def _parse_python_function_call(call_str: str) -> dict | None:
+    """Parse a Python-style call like `name(a="x", b=1)` into {name, arguments}."""
+    try:
+        tree = ast.parse(call_str.strip(), mode='eval')
+    except SyntaxError:
+        return None
+    if not isinstance(tree.body, ast.Call):
+        return None
+    func = tree.body.func
+    if isinstance(func, ast.Name):
+        name = func.id
+    elif isinstance(func, ast.Attribute):
+        name = func.attr
+    else:
+        return None
+    args: dict[str, Any] = {}
+    for kw in tree.body.keywords:
+        if kw.arg is None:
+            continue
+        try:
+            args[kw.arg] = ast.literal_eval(kw.value)
+        except (ValueError, SyntaxError):
+            return None
+    return {'name': name, 'arguments': args}
+
+
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
     tool_calls = []
@@ -38,7 +65,7 @@ def try_parse_tool_calls(content: str):
     found = False
     # Qwen-style tool call, works with Llama 3.1
     # <tool_call>{"name": "function_name", "arguments": {"param1": "value1", "param2": "value2"}}</tool_call>
-    for i, m in enumerate(re.finditer(r"<tool_call>\w*?(.+)?\w*?</?tool_call>", content)):
+    for i, m in enumerate(re.finditer(r"<tool_call>\s*(.+?)\s*</?tool_call>", content, re.DOTALL)):
         if i == 0:
             offset = m.start()
         try:
@@ -62,11 +89,27 @@ def try_parse_tool_calls(content: str):
             pass
 
     if not found:
+        # Olmo-style tool call
+        # <function_calls>function_name(param1="value1", param2="value2")</function_calls>
+        for i, m in enumerate(re.finditer(r"<function_calls>\s*(.+?)\s*</?function_calls>", content, re.DOTALL)):
+            if i == 0:
+                offset = m.start()
+            func = _parse_python_function_call(m.group(1))
+            if func is None:
+                print(f"Failed to parse tool call: the content is {m.group(1)}")
+                continue
+            func['args'] = func.pop('arguments', {})
+            func.setdefault('id', generate_tool_call_id(func))
+            func.setdefault('type', 'tool_call')
+            tool_calls.append(func)
+            found = True
+
+    if not found:
         # Gemma-style tool call
         # ```tool_call
         # {"name": "function_name", "arguments": {"param1": "value1", "param2": "value2"}}
         # ```
-        for i, m in enumerate(re.finditer(r"```tool_call\n(.+)?\n```", content)):
+        for i, m in enumerate(re.finditer(r"```tool_call\s*\n(.+?)\n\s*```", content, re.DOTALL)):
             if i == 0:
                 offset = m.start()
             try:
@@ -99,9 +142,14 @@ def try_parse_tool_calls(content: str):
 
 def strip_tool_calls_for_streaming(content: str) -> str:
     sanitized = re.sub(r"<tool_call>.*?</tool_call>", "", content, flags=re.DOTALL)
+    sanitized = re.sub(r"<function_calls>.*?</function_calls>", "", sanitized, flags=re.DOTALL)
     sanitized = re.sub(r"```tool_call\n.*?\n```", "", sanitized, flags=re.DOTALL)
 
-    partial_markers = [index for index in (sanitized.find("<tool"), sanitized.find("```tool")) if index != -1]
+    partial_markers = [
+        index
+        for index in (sanitized.find("<tool"), sanitized.find("<function_calls"), sanitized.find("```tool"))
+        if index != -1
+    ]
     if partial_markers:
         sanitized = sanitized[:min(partial_markers)]
 
