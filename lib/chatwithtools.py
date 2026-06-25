@@ -2,13 +2,14 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """A chat chain
 """
+import ast
 import json
 import hashlib
 import pprint
 import re
 from typing import Any
 
-from langchain_community.chat_models import ChatLlamaCpp
+from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.messages.ai import AIMessage
 
@@ -31,6 +32,32 @@ def generate_tool_call_id(tool_call: dict) -> str:
     )
     return hashlib.sha1(stable_payload.encode("utf-8")).hexdigest()[:16]
 
+def _parse_python_function_call(call_str: str) -> dict | None:
+    """Parse a Python-style call like `name(a="x", b=1)` into {name, arguments}."""
+    try:
+        tree = ast.parse(call_str.strip(), mode='eval')
+    except SyntaxError:
+        return None
+    if not isinstance(tree.body, ast.Call):
+        return None
+    func = tree.body.func
+    if isinstance(func, ast.Name):
+        name = func.id
+    elif isinstance(func, ast.Attribute):
+        name = func.attr
+    else:
+        return None
+    args: dict[str, Any] = {}
+    for kw in tree.body.keywords:
+        if kw.arg is None:
+            continue
+        try:
+            args[kw.arg] = ast.literal_eval(kw.value)
+        except (ValueError, SyntaxError):
+            return None
+    return {'name': name, 'arguments': args}
+
+
 def try_parse_tool_calls(content: str):
     """Try parse the tool calls."""
     tool_calls = []
@@ -38,7 +65,7 @@ def try_parse_tool_calls(content: str):
     found = False
     # Qwen-style tool call, works with Llama 3.1
     # <tool_call>{"name": "function_name", "arguments": {"param1": "value1", "param2": "value2"}}</tool_call>
-    for i, m in enumerate(re.finditer(r"<tool_call>\w*?(.+)?\w*?</?tool_call>", content)):
+    for i, m in enumerate(re.finditer(r"<tool_call>\s*(.+?)\s*</?tool_call>", content, re.DOTALL)):
         if i == 0:
             offset = m.start()
         try:
@@ -62,11 +89,27 @@ def try_parse_tool_calls(content: str):
             pass
 
     if not found:
+        # Olmo-style tool call
+        # <function_calls>function_name(param1="value1", param2="value2")</function_calls>
+        for i, m in enumerate(re.finditer(r"<function_calls>\s*(.+?)\s*</?function_calls>", content, re.DOTALL)):
+            if i == 0:
+                offset = m.start()
+            func = _parse_python_function_call(m.group(1))
+            if func is None:
+                print(f"Failed to parse tool call: the content is {m.group(1)}")
+                continue
+            func['args'] = func.pop('arguments', {})
+            func.setdefault('id', generate_tool_call_id(func))
+            func.setdefault('type', 'tool_call')
+            tool_calls.append(func)
+            found = True
+
+    if not found:
         # Gemma-style tool call
         # ```tool_call
         # {"name": "function_name", "arguments": {"param1": "value1", "param2": "value2"}}
         # ```
-        for i, m in enumerate(re.finditer(r"```tool_call\n(.+)?\n```", content)):
+        for i, m in enumerate(re.finditer(r"```tool_call\s*\n(.+?)\n\s*```", content, re.DOTALL)):
             if i == 0:
                 offset = m.start()
             try:
@@ -99,9 +142,14 @@ def try_parse_tool_calls(content: str):
 
 def strip_tool_calls_for_streaming(content: str) -> str:
     sanitized = re.sub(r"<tool_call>.*?</tool_call>", "", content, flags=re.DOTALL)
+    sanitized = re.sub(r"<function_calls>.*?</function_calls>", "", sanitized, flags=re.DOTALL)
     sanitized = re.sub(r"```tool_call\n.*?\n```", "", sanitized, flags=re.DOTALL)
 
-    partial_markers = [index for index in (sanitized.find("<tool"), sanitized.find("```tool")) if index != -1]
+    partial_markers = [
+        index
+        for index in (sanitized.find("<tool"), sanitized.find("<function_calls"), sanitized.find("```tool"))
+        if index != -1
+    ]
     if partial_markers:
         sanitized = sanitized[:min(partial_markers)]
 
@@ -126,12 +174,12 @@ class ChatWithToolsProcessor:
 	A chat with tools processor that supports batch processing
 	"""
 
-    model: ChatLlamaCpp
+    model: BaseChatModel
 
-    def __init__(self, runner: ChatLlamaCpp):
+    def __init__(self, runner: BaseChatModel):
         self.model = runner
 
-    def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+    async def _process_single_input(self, input_data: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         system_prompt = """
 {downstream_system_prompt}
 
@@ -192,20 +240,23 @@ The following is a JSON specification of the tools you can call and their parame
             messages.append(HumanMessage(content=''))
 
         pprint.pprint(messages)
-        response_content = run_runnable_with_streaming(
+        reasoning_sink: dict[str, str] = {}
+        response_content = await run_runnable_with_streaming(
             self.model,
             messages,
             context,
             stream_payload_transform=build_streaming_payload,
             suppress_empty_stream_updates=True,
+            reasoning_sink=reasoning_sink,
         )
 
         response = AIMessage(**try_parse_tool_calls(response_content))
 
         return {
             'output': response.content,
-            'tool_calls': json.dumps(response.tool_calls)
+            'tool_calls': json.dumps(response.tool_calls),
+            'reasoning': reasoning_sink.get('reasoning', ''),
         }
 
-    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
-        return self._process_single_input(inputs, context)
+    async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        return await self._process_single_input(inputs, context)

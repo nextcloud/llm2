@@ -70,14 +70,16 @@ See [the Nextcloud admin documentation](https://docs.nextcloud.com/server/latest
 ## Development installation using Docker
 
 > [!NOTE]
-> Currently, running the Docker image requires that your host system have CUDA/NVIDIA drivers installed and is equipped with a GPU capable of performing the required tasks.
+> The CUDA image requires that your host system have CUDA/NVIDIA drivers installed and is equipped with a GPU capable of performing the required tasks. The CPU image runs anywhere but is slower.
 
-0. [Install Nvidia drivers and CUDA on your host system](https://gist.github.com/denguir/b21aa66ae7fb1089655dd9de8351a202) and [install NVIDIA Docker toolkit](https://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container).
+0. (CUDA image only) [Install Nvidia drivers and CUDA on your host system](https://gist.github.com/denguir/b21aa66ae7fb1089655dd9de8351a202) and [install NVIDIA Docker toolkit](https://stackoverflow.com/questions/25185405/using-gpu-from-a-docker-container).
 
-1. Build the Docker image:
+1. Build the Docker image (pick one). Per the [AppAPI image convention](https://docs.nextcloud.com/server/latest/developer_manual/exapp_development/faq/GpuSupport.html), CPU is the unsuffixed default and GPU variants are suffixed:
 
    ```sh
-   docker build --no-cache -f Dockerfile -t llm2:latest .
+   docker build --no-cache -f Dockerfile.cpu  -t llm2:latest      .
+   docker build --no-cache -f Dockerfile.cuda -t llm2:latest-cuda .
+   docker build --no-cache -f Dockerfile.rocm -t llm2:latest-rocm .
    ```
 
 2. Run the Docker image:

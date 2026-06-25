@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-name: Publish CPU Image
+name: Publish Docker Images
 
 on:
   push:
@@ -15,9 +15,13 @@ permissions:
 
 jobs:
   push_to_registry:
-    name: Build image
+    name: Build ${{ matrix.variant }} image
     runs-on: ubuntu-22.04
     if: ${{ github.repository_owner == 'nextcloud' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [cuda, rocm, cpu]
     steps:
       - name: Set app env
         run: |
@@ -93,14 +97,29 @@ jobs:
         run: |
           echo "Extracted version: ${{ env.VERSION }}"
 
+      # AppAPI selects ExApp images by tag suffix per the deploy daemon's computeDevice:
+      # CPU is the unsuffixed default (`<image>:<version>`), CUDA is `<image>:<version>-cuda`,
+      # ROCm is `<image>:<version>-rocm`.
+      - name: Compute image tags
+        id: tags
+        run: |
+          if [ "${{ matrix.variant }}" = "cpu" ]; then
+            SUFFIX=""
+          else
+            SUFFIX="-${{ matrix.variant }}"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "ghcr.io/nextcloud/${{ env.APP_NAME }}:${{ env.VERSION }}${SUFFIX}"
+            echo "ghcr.io/nextcloud/${{ env.APP_NAME }}:latest${SUFFIX}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Build container image
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
           context: ./${{ env.APP_NAME }}
+          file: ./${{ env.APP_NAME }}/Dockerfile.${{ matrix.variant }}
           platforms: linux/amd64
-          tags: |
-            ghcr.io/nextcloud/${{ env.APP_NAME }}:${{ env.VERSION }}
-            ghcr.io/nextcloud/${{ env.APP_NAME }}:latest
-          build-args: |
-            BUILD_TYPE=cpu
+          tags: ${{ steps.tags.outputs.tags }}

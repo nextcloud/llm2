@@ -48,7 +48,7 @@ Summaries to combine:
             length_function=len,
         )
 
-    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+    async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         # Split text if needed
         splits = self.text_splitter.split_text(inputs['input'])
         total_splits = len(splits)
@@ -58,7 +58,7 @@ Summaries to combine:
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=splits[0]))
             ]
-            output = run_runnable_with_streaming(
+            output = await run_runnable_with_streaming(
                 self.runnable,
                 messages,
                 context,
@@ -72,7 +72,7 @@ Summaries to combine:
                 SystemMessage(content=self.system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=split))
             ]
-            output = self.runnable.invoke(messages)
+            output = await self.runnable.ainvoke(messages)
             summaries.append(output.content)
             if context:
                 context.set_progress(index / (total_splits + 1) * 50)
@@ -85,7 +85,7 @@ Summaries to combine:
         if context:
             context.set_progress(total_splits / (total_splits + 1) * 50 + 50)
 
-        final_output = run_runnable_with_streaming(
+        final_output = await run_runnable_with_streaming(
             self.runnable,
             messages,
             context,

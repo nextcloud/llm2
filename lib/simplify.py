@@ -38,12 +38,18 @@ Output only the new, rewritten text without quotes, nothing else. Do not mention
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+    async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format(
                 text=inputs['input']
             ))
         ]
-        output = run_runnable_with_streaming(self.runnable, messages, context)
-        return {'output': output}
+        reasoning_sink: dict[str, str] = {}
+        output = await run_runnable_with_streaming(
+            self.runnable,
+            messages,
+            context,
+            reasoning_sink=reasoning_sink,
+        )
+        return {'output': output, 'reasoning': reasoning_sink.get('reasoning', '')}

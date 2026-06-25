@@ -15,8 +15,14 @@ fastapi = ">=0.135.3,<0.139.0"
 nc-py-api = {extras = ["app"], version = ">=0.24.2,<0.31.0"}
 langchain = "^0.3.27"
 niquests = "^3.18.5"
-langchain-community = "^0.3.24"
-llama-cpp-python = "^0.3.20"
+langchain-openai = "^0.3"
+xllamacpp = {version = "*", source = "xllamacpp-cu128"}
+
+
+[[tool.poetry.source]]
+name = "xllamacpp-cu128"
+url = "https://xorbitsai.github.io/xllamacpp/whl/cu128"
+priority = "explicit"
 
 
 [build-system]
