@@ -113,27 +113,7 @@ def _wait_for_server(proc: subprocess.Popen, port: int, log_pipe: _ServerLogPipe
     )
 
 
-# Inline script run in the server subprocess. Kept as a module-level constant so it
-# is easy to read and not reconstructed on every call.
-_SERVER_SCRIPT = """\
-import sys, json, time
-import xllamacpp as xlc
-
-cfg = json.loads(sys.argv[1])
-p = xlc.CommonParams()
-p.model.path = cfg["model_path"]
-p.hostname = cfg["hostname"]
-p.port = cfg["port"]
-p.n_ctx = cfg["n_ctx"]
-p.n_gpu_layers = cfg["n_gpu_layers"]
-p.n_batch = cfg["n_batch"]
-p.n_parallel = cfg["n_parallel"]
-p.cont_batching = True
-
-server = xlc.Server(p)  # starts the C++ server in a background thread
-while True:
-    time.sleep(3600)
-"""
+_SERVER_SCRIPT_PATH = os.path.join(dir_path, "llama_server.py")
 
 
 @cache
@@ -155,16 +135,17 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
         "model_path": path,
         "hostname": "127.0.0.1",
         "port": port,
-        "n_ctx": loader_config["n_ctx"],
         "n_gpu_layers": n_gpu_layers,
         "n_batch": loader_config.get("n_batch", 512),
         "n_parallel": loader_config.get("n_parallel", 1),
+        "cont_batching": True,
+        **loader_config,
     })
 
     logger.info(f"Starting llama-server for {file_name} on port {port}")
     try:
         proc = subprocess.Popen(
-            [sys.executable, "-c", _SERVER_SCRIPT, server_config],
+            [sys.executable, _SERVER_SCRIPT_PATH, server_config],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

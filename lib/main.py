@@ -67,7 +67,7 @@ async def log(nc: AsyncNextcloudApp, level, content):
 models_to_fetch = {
     "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/3885219b6810b007914f3a7950a8d1b469d598a5/Qwen3.5-9B-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Qwen3.5-9B-Q4_K_M.gguf")},
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")},
-    "https://huggingface.co/unsloth/Olmo-3-7B-Think-GGUF/resolve/25ad721cfffa2de24f43a51571dfd027108ca8ba/Olmo-3-7B-Think-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Olmo-3-7B-Think-Q4_K_M.gguf")},
+    "https://huggingface.co/unsloth/Olmo-3-7B-Instruct-GGUF/resolve/86844f8ff856ba9cc8a22c7b9edd7cf95129a580/Olmo-3-7B-Instruct-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Olmo-3-7B-Instruct-Q4_K_M.gguf")},
 }
 
 # threading.Event: set from the async enabled_handler, checked in the async polling loop

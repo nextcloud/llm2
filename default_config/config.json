@@ -87,12 +87,13 @@
         }
     },
     "Olmo-3-7B-Instruct-Q4_K_M": {
-        "prompt": "<|endoftext|><|system|>\n{system_prompt}\n<|user|>\n{system_prompt}\n{user_prompt}\n<|assistant|>\n",
         "loader_config": {
             "n_ctx": 4096,
             "max_tokens": 2048,
             "stop": ["<|endoftext|>"],
-            "temperature": 0.4
+            "temperature": 0.4,
+            "enable_chat_template": 1,
+            "chat_template": "{%- set has_system = messages|selectattr('role', 'equalto', 'system')|list|length > 0 -%}{%- if not has_system -%}{{- '<|im_start|>system\nYou are a helpful AI assistant.<|im_end|>\n' -}}{%- endif -%}{%- for message in messages -%}{%- if message['role'] == 'system' -%}{{- '<|im_start|>system\n' + message['content'] + '<|im_end|>\n' -}}{%- elif message['role'] == 'user' -%}{{- '<|im_start|>user\n' + message['content'] + '<|im_end|>\n' -}}{%- elif message['role'] == 'assistant' -%}{{- '<|im_start|>assistant\n' -}}{%- if message.get('content', none) is not none -%}{{- message['content'] -}}{%- endif -%}{%- if not loop.last -%}{{- '<|im_end|>\n' -}}{%- else -%}{{- eos_token -}}{%- endif -%}{%- endif -%}{%- if loop.last and add_generation_prompt -%}{{- '<|im_start|>assistant\n' -}}{%- endif -%}{%- endfor -%}"
         }
     },
     "Olmo-3-7B-Think-Q4_K_M": {
