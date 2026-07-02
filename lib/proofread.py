@@ -18,9 +18,9 @@ class ProofreadProcessor:
     """
     system_prompt: str = "You're an AI assistant tasked with proofreading the text given to you by the user."
     user_prompt: BasePromptTemplate = PromptTemplate(
-        input_variables=["text"],
+        input_variables=["text", "grammar_instructions"],
         template="""
-Detect all grammar and spelling mistakes of the following text in its original language. Output only the list of mistakes in bullet points.
+{grammar_instructions}
 
 "
 {text}
@@ -36,10 +36,17 @@ Give me the list of all mistakes in the above text in its original language. Do 
         self.runnable = runnable
 
     async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        grammar_instructions = "Detect all grammar and spelling mistakes of the following text in its original language. Output only the list of mistakes in bullet points."
+        strictness = inputs.get("strictness", "standard")
+        if strictness == "strict":
+            grammar_instructions = "Detect every conceivable issue, including minor grammar rules, and list how to correct them in their original language. Also flag redundancy, and phrasing that could be clearer. Output only the list of mistakes in bullet points."
+        elif strictness == "minimal":
+            grammar_instructions = "Detect only grammatical and spelling errors that clearly affect meaning or readability in their original language and list how to correct them. Output only the list of mistakes in bullet points."
         messages = [
             SystemMessage(content=self.system_prompt),
             HumanMessage(content=self.user_prompt.format(
-                text=inputs['input']
+                text=inputs['input'],
+                grammar_instructions=grammar_instructions
             ))
         ]
         reasoning_sink: dict[str, str] = {}
