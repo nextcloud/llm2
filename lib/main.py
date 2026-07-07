@@ -274,6 +274,60 @@ async def lifespan(_app: FastAPI):
 
 APP = FastAPI(lifespan=lifespan)
 
+def get_optional_input_shape(task: str) -> list[ShapeDescriptor]:
+    if task == "core:text2text:chat":
+        return [
+            ShapeDescriptor(name="memories", description="Memories to inject into the prompt", shape_type=ShapeType.LIST_OF_TEXTS)
+        ]
+    if task == "core:text2text:proofread":
+        return [
+            ShapeDescriptor(name="strictness", description="How thoroughly to check spelling and grammar.", shape_type=ShapeType.ENUM)
+        ]
+    if task == "core:text2text:summary":
+        return [
+            ShapeDescriptor(name="format", description="The format of the summary", shape_type=ShapeType.ENUM),
+            ShapeDescriptor(name="complexity", description="The complexity of the summary", shape_type=ShapeType.ENUM),
+        ]
+
+    return []
+
+def get_optional_input_enum_values(task: str) -> dict[str, list[ShapeEnumValue]]:
+    if task == "core:text2text:proofread":
+        return {
+            "strictness": [
+                ShapeEnumValue(name="Strict", value="strict"),
+                ShapeEnumValue(name="Standard", value="standard"),
+                ShapeEnumValue(name="Minimal", value="minimal"),
+            ]
+        }
+    if task == "core:text2text:summary":
+        return {
+            "format": [
+                ShapeEnumValue(name="Auto", value="auto"),
+                ShapeEnumValue(name="One Sentence", value="sentence"),
+                ShapeEnumValue(name="One Paragraph", value="paragraph"),
+                ShapeEnumValue(name="Bullet Points", value="bullet_points"),
+            ],
+            "complexity": [
+                ShapeEnumValue(name="Simple", value="simple"),
+                ShapeEnumValue(name="Medium", value="medium"),
+                ShapeEnumValue(name="Complex", value="complex"),
+            ],
+        }
+
+    return {}
+
+def get_optional_input_defaults(task: str) -> dict[str, str]:
+    if task == "core:text2text:proofread":
+        return {
+            "strictness": "standard",
+        }
+    if task == "core:text2text:summary":
+        return {
+            "format": "auto",
+            "complexity": "medium",
+        }
+    return {}
 
 async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
     await log(nc, LogLvl.INFO, f"enabled={enabled}")
@@ -291,16 +345,22 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                     expected_runtime=30,
                     input_shape_enum_values={
                         "tone": [
+                            ShapeEnumValue(name="Less wordy", value="less wordy"),
+                            ShapeEnumValue(name="Simpler", value="simpler"),
+                            ShapeEnumValue(name="More convincing", value="more convincing"),
+                            ShapeEnumValue(name="Less buzzwords", value="less buzzwords"),
                             ShapeEnumValue(name="Friendlier", value="friendlier"),
                             ShapeEnumValue(name="More formal", value="more formal"),
                             ShapeEnumValue(name="Funnier", value="funnier"),
+                            ShapeEnumValue(name="More passionate", value="more passionate"),
+                            ShapeEnumValue(name="Less emotional", value="less emotional"),
                             ShapeEnumValue(name="More casual", value="more casual"),
                             ShapeEnumValue(name="More urgent", value="more urgent"),
                         ],
                     } if task == "core:text2text:changetone" else {},
-                    optional_input_shape=[
-                        ShapeDescriptor(name="memories", description="Memories to inject into the prompt", shape_type=ShapeType.LIST_OF_TEXTS)
-                    ] if task == "core:text2text:chat" else [],
+                    optional_input_shape=get_optional_input_shape(task),
+                    optional_input_shape_enum_values=get_optional_input_enum_values(task),
+                    optional_input_defaults=get_optional_input_defaults(task),
                     optional_output_shape=[
                         ShapeDescriptor(name="reasoning", description="Reasoning trace produced by the model, if any", shape_type=ShapeType.TEXT)
                     ] if task != "core:text2text:summary" else [],

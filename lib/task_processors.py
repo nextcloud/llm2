@@ -22,6 +22,7 @@ from chat import ChatProcessor
 from free_prompt import FreePromptProcessor
 from headline import HeadlineProcessor
 from contextwrite import ContextWriteProcessor
+from improve import ImproveProcessor
 from reformulate import ReformulateProcessor
 from simplify import SimplifyProcessor
 from proofread import ProofreadProcessor
@@ -229,6 +230,7 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text:simplification"] = lambda: SimplifyProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:reformulation"] = lambda: ReformulateProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:contextwrite"] = lambda: ContextWriteProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:improve"] = lambda: ImproveProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text"] = lambda: FreePromptProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:chat"] = lambda: ChatProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_model(file_name))

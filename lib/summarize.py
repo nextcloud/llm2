@@ -15,7 +15,6 @@ class SummarizeProcessor:
     runnable: Runnable
     text_splitter: RecursiveCharacterTextSplitter
 
-    system_prompt: str = "You're an AI assistant tasked with summarizing the text given to you by the user. Use a bullet list to summarize. Make sure to cover all topics of the text in your summary. Output only the summary without quotes, nothing else, especially no introductory or explanatory text."
     user_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["input"],
         template="""
@@ -29,7 +28,7 @@ Text to summarize:
     merge_prompt: BasePromptTemplate = PromptTemplate(
         input_variables=["input"],
         template="""
-Combine these summaries into one coherent summary. Preserve the most important information while making it concise and easy to understand.
+Combine these summaries into one coherent summary. Preserve the most important information while making it concise.
 The final summary should be in the same language as the original summaries. Detect the language of the original summaries. Use the same language for the final summary as the one you detected. Only output the final summary, no explanations or additional text. Do not mention the language used.
 
 Summaries to combine:
@@ -48,14 +47,37 @@ Summaries to combine:
             length_function=len,
         )
 
+    def _build_system_prompt(self, format: str, complexity: str) -> str:
+        prompt = (
+            "You're an AI assistant tasked with summarizing the text given to you by the user. "
+            "Make sure to cover all topics of the text in your summary. "
+            "Output only the summary without quotes, nothing else, especially no introductory or explanatory text. "
+        )
+        if format == "paragraph":
+            prompt += "Return the summary as a paragraph. "
+        elif format == "bullet_points":
+            prompt += "Return the summary as a list of bullet points. "
+        elif format == "sentence":
+            prompt += "Return the summary as a single sentence. Do not include more than one sentence. "
+        if complexity == "complex":
+            prompt += "Use complex language and vocabulary appropriate for an expert in the subject. "
+        elif complexity == "simple":
+            prompt += "Use simple language and vocabulary appropriate for a 5 year old. "
+        return prompt
+
     async def __call__(self, inputs: dict[str, Any], context: StreamContext | None = None) -> dict[str, Any]:
+        system_prompt = self._build_system_prompt(
+            inputs.get("format", "auto"),
+            inputs.get("complexity", "medium"),
+        )
+
         # Split text if needed
         splits = self.text_splitter.split_text(inputs['input'])
         total_splits = len(splits)
 
         if len(splits) == 1:
             messages = [
-                SystemMessage(content=self.system_prompt),
+                SystemMessage(content=system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=splits[0]))
             ]
             output = await run_runnable_with_streaming(
@@ -69,7 +91,7 @@ Summaries to combine:
         summaries = []
         for index, split in enumerate(splits, start=1):
             messages = [
-                SystemMessage(content=self.system_prompt),
+                SystemMessage(content=system_prompt),
                 HumanMessage(content=self.user_prompt.format(input=split))
             ]
             output = await self.runnable.ainvoke(messages)
@@ -79,7 +101,7 @@ Summaries to combine:
 
         # Merge summaries
         messages = [
-            SystemMessage(content=self.system_prompt),
+            SystemMessage(content=system_prompt),
             HumanMessage(content=self.merge_prompt.format(input="\n\n".join(summaries)))
         ]
         if context:
