@@ -135,7 +135,7 @@ jobs:
           poetry run pip install --force-reinstall --no-deps xllamacpp
 
       - name: Cache llm2 models
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         id: cache-llm2-models-restore
         env:
           cache-name: cache-llm2-models
@@ -178,7 +178,7 @@ jobs:
           [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
 
       - name: Cache llm2 models
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         env:
           cache-name: cache-llm2-models
         with:
