@@ -2357,15 +2357,15 @@ files = [
 
 [[package]]
 name = "xllamacpp"
-version = "2026.6.9713"
+version = "2026.7.9873"
 description = "A Python wrapper of llama.cpp"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "xllamacpp-2026.6.9713-cp310-abi3-linux_aarch64.whl", hash = "sha256:21da648af2c7b98bac000f7d5cc619ba7e34b6bbe44135d4fd9b5757fda2d764"},
-    {file = "xllamacpp-2026.6.9713-cp310-abi3-linux_x86_64.whl", hash = "sha256:ba4f36c3e1d537c230bfaf3fb726ace6837ca97a3f1b9aa9c27bdb6fb59a925b"},
-    {file = "xllamacpp-2026.6.9713-cp310-abi3-win_amd64.whl", hash = "sha256:d560527807f21f337b66e4062a800bc072b7dec2441d2d49e358720ceb2c7061"},
+    {file = "xllamacpp-2026.7.9873-cp310-abi3-linux_aarch64.whl", hash = "sha256:f08c51b20a43ad469d1f173b463c194b398fe2eb23ffb60e9a0268f0b97e8d0b"},
+    {file = "xllamacpp-2026.7.9873-cp310-abi3-linux_x86_64.whl", hash = "sha256:ed2a66e54032da63617b0b0dfaf01846a5fe53420e7056df863ac54561f25688"},
+    {file = "xllamacpp-2026.7.9873-cp310-abi3-win_amd64.whl", hash = "sha256:c2a651b475db25434c8afddc022c0532ef23af154a1b5407ad0f542604e901ad"},
 ]
 
 [package.extras]
