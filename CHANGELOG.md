@@ -9,6 +9,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.8.0] - 2026-07-15
+
+### Added
+
+- Streaming output (both text and tool calls)
+- Support for reformat paragraphs and improve text task types
+- Ship Qwen 3.5 (9B) and Gemma 4 (E4B) models
+- Reasoning output for compatible models
+- Docker builds for CUDA and ROCm
+- Task batching
+
+### Changed
+
+- Bump max supported Nextcloud version to 35
+- Adjust system prompts for several tasks
+- Update dependencies
+
 ## [2.7.0] - 2026-04-13
 
 ### Added
