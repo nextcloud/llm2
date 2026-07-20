@@ -6,7 +6,7 @@ from typing import Any
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import Runnable
 
-from lib.task_files import fetch_file_bytes
+from task_files import fetch_file_bytes
 from streaming import StreamContext, run_runnable_with_streaming
 
 

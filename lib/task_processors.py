@@ -32,6 +32,7 @@ from topics import TopicsProcessor
 from summarize import SummarizeProcessor
 from reformat_paragraphs import ReformatParagraphsProcessor
 from analyze_images import AnalyzeImagesProcessor
+from multimodal_chatwithtools import MultimodalChatWithToolsProcessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
@@ -263,3 +264,4 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text:reformatparagraphs"] = lambda: ReformatParagraphsProcessor(generate_chat_model(file_name))
     if model_supports_vision(file_name):
         task_processors[model_name + ":core:analyze-images"] = lambda: AnalyzeImagesProcessor(generate_chat_model(file_name))
+        task_processors[model_name + ":core:text2text:multimodal-chatwithtools"] = lambda: MultimodalChatWithToolsProcessor(generate_chat_model(file_name))
