@@ -7,6 +7,8 @@ from dataclasses import dataclass, field
 from time import monotonic
 from typing import Any, Awaitable, Callable
 
+from nc_py_api import AsyncNextcloudApp
+
 # langchain-openai's converters drop `reasoning_content` (emitted by llama.cpp's
 # deepseek reasoning format) from both streaming deltas and non-streaming
 # responses. Patch them to preserve it under additional_kwargs so downstream
@@ -82,6 +84,8 @@ def extract_reasoning_content(value: Any) -> str:
 
 @dataclass
 class StreamContext:
+    nc: AsyncNextcloudApp
+    user_id: str | None = None
     stream_result: Callable[[dict[str, Any]], Awaitable[None] | None] | None = None
     progress_callback: Callable[[float], Awaitable[Any] | Any] | None = None
     stream_interval_seconds: float = 0.75

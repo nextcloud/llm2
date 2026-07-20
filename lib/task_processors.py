@@ -31,6 +31,7 @@ from chatwithtools import ChatWithToolsProcessor
 from topics import TopicsProcessor
 from summarize import SummarizeProcessor
 from reformat_paragraphs import ReformatParagraphsProcessor
+from analyze_images import AnalyzeImagesProcessor
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 models_folder_path = os.path.join(dir_path , "../models/")
@@ -58,6 +59,24 @@ class _ServerLogPipe:
 
     def tail(self) -> str:
         return "\n".join(self._tail)
+
+
+def resolve_model_file(name: str) -> str:
+    """Resolve a GGUF / mmproj filename under models/ or persistent_storage()."""
+    for root in (models_folder_path, persistent_storage()):
+        candidate = os.path.join(root, name)
+        if os.path.exists(candidate):
+            return candidate
+    raise FileNotFoundError(f"Model file not found: {name}")
+
+
+def model_supports_vision(file_name: str) -> bool:
+    return bool(get_model_config(file_name)["loader_config"].get("mmproj_path"))
+
+
+def _is_language_model_gguf(file_name: str) -> bool:
+    """Skip multimodal projector GGUFs when discovering models."""
+    return file_name.endswith(".gguf") and "mmproj" not in file_name.lower()
 
 
 def get_model_config(file_name):
@@ -123,9 +142,7 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
     model_config = get_model_config(file_name)
     loader_config = model_config["loader_config"]
 
-    path = os.path.join(models_folder_path, file_name)
-    if not os.path.exists(path):
-        path = os.path.join(persistent_storage(), file_name)
+    path = resolve_model_file(file_name)
 
     compute_device = os.getenv("COMPUTE_DEVICE", "CUDA")
     n_gpu_layers = -1 if compute_device != "CPU" else 0
@@ -133,7 +150,7 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
     port = _find_free_port()
     model_alias = file_name.split(".gguf")[0]
 
-    server_config = json.dumps({
+    server_cfg: dict = {
         "model_path": path,
         "hostname": "127.0.0.1",
         "port": port,
@@ -142,7 +159,12 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
         "n_parallel": loader_config.get("n_parallel", 1),
         "cont_batching": True,
         **loader_config,
-    })
+    }
+
+    if server_cfg.get("mmproj_path"):
+        server_cfg["mmproj_path"] = resolve_model_file(server_cfg["mmproj_path"])
+
+    server_config = json.dumps(server_cfg)
 
     logger.info(f"Starting llama-server for {file_name} on port {port}")
     try:
@@ -206,16 +228,18 @@ def stop_all_servers() -> None:
 
 def generate_task_processors(task_processors = {}):
     for file in os.scandir(models_folder_path):
-        if file.name.endswith(".gguf"):
-            if file.name.split('.gguf')[0] in task_processors:
-                continue
-            generate_task_processors_for_model(file.name, task_processors)
+        if not _is_language_model_gguf(file.name):
+            continue
+        if file.name.split('.gguf')[0] in task_processors:
+            continue
+        generate_task_processors_for_model(file.name, task_processors)
 
     for file in os.scandir(persistent_storage()):
-        if file.name.endswith('.gguf'):
-            if file.name.split('.gguf')[0] in task_processors:
-                continue
-            generate_task_processors_for_model(file.name, task_processors)
+        if not _is_language_model_gguf(file.name):
+            continue
+        if file.name.split('.gguf')[0] in task_processors:
+            continue
+        generate_task_processors_for_model(file.name, task_processors)
 
     return task_processors
 
@@ -237,3 +261,5 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:reformatparagraphs"] = lambda: ReformatParagraphsProcessor(generate_chat_model(file_name))
+    if model_supports_vision(file_name):
+        task_processors[model_name + ":core:analyze-images"] = lambda: AnalyzeImagesProcessor(generate_chat_model(file_name))

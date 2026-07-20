@@ -64,7 +64,8 @@
             "n_ctx": 24000,
             "max_tokens": 8192,
             "stop": ["<|eot_id|>"],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "mmproj_path": "gemma-4-E4B-it-mmproj.gguf"
         }
     },
     "Qwen3.5-9B-Q4_K_M": {
@@ -74,7 +75,9 @@
             "n_batch": 8,
             "max_tokens": 8192,
             "stop": ["<|eot_id|>"],
-            "temperature": 0.7
+            "temperature": 0.7,
+            "mmproj_path": "Qwen3.5-9B-mmproj-F16.gguf",
+            "image_min_tokens": 1024
         }
     },
     "olmo-2-1124-7B-instruct-Q4_K_M": {
