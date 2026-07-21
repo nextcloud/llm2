@@ -27,12 +27,15 @@ class AnalyzeImagesProcessor:
             inputs: dict[str, Any],
             context: StreamContext | None = None,
     ) -> dict[str, Any]:
+        if context is None or context.nc is None:
+            raise ValueError("StreamContext with Nextcloud client is required for analyze-images")
+
         question = inputs.get("input") or ""
         images = inputs.get("images") or []
         if not images:
             raise ValueError("core:analyze-images requires at least one image")
-        if context.user_id:
-            await context.nc.set_user(context.user_id)
+        if len(images) > 10:
+            raise ValueError("Too many images")
         images = [await fetch_file_bytes(context.nc, image) for image in images]
 
         content: list[dict[str, Any]] = [{"type": "text", "text": question}]

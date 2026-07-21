@@ -26,10 +26,6 @@ logger = logging.getLogger(__name__)
 
 async def resolve_message_content(nc: AsyncNextcloudApp, content: Any) -> str | list[dict[str, Any]]:
     """Resolve history content: strings pass through; file parts are fetched."""
-    if isinstance(content, str):
-        return content
-    if not isinstance(content, list):
-        raise ValueError("Invalid message history content")
 
     resolved: list[dict[str, Any]] = []
     for item in content:
@@ -78,9 +74,6 @@ class MultimodalChatWithToolsProcessor:
         if context is None or context.nc is None:
             raise ValueError("StreamContext with Nextcloud client is required for multimodal chat")
 
-        if context.user_id:
-            await context.nc.set_user(context.user_id)
-
         system_prompt = """
 {downstream_system_prompt}
 
@@ -103,7 +96,8 @@ The following is a JSON specification of the tools you can call and their parame
             tool_call_example2='<tool_call>{"name": "search_the_web", "arguments": {"search_query": "Frank Sinatra"}}</tool_call>'
         )
 
-        messages = [SystemMessage(content=system_prompt)]
+        messages = []
+        messages.append(SystemMessage(content=system_prompt))
 
         for raw_message in input_data['history']:
             message = json.loads(raw_message)
@@ -117,6 +111,9 @@ The following is a JSON specification of the tools you can call and their parame
                 messages.append(HumanMessage(content=content))
 
         attachments = input_data['input_attachments']
+        if len(attachments) > 10:
+            raise ValueError("Too many attachments")
+
         attachment_parts = await build_input_attachment_parts(context.nc, attachments)
 
         if input_data['input'] != '':

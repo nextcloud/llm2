@@ -155,11 +155,17 @@ async def handle_task(task: dict, provider: dict, nc: AsyncNextcloudApp, task_pr
         processor = await loop.run_in_executor(None, task_processor_loader)
 
         stream_result = NextcloudTaskStreamResult(nc, task["id"], bool(task.get("preferStreaming")))
+        # Per-task client for user-scoped file access so concurrent set_user
+        # calls cannot race on the shared background-loop nc.
+        user_id = task.get("userId")
+        user_nc = None
+        if user_id:
+            user_nc = AsyncNextcloudApp()
+            await user_nc.set_user(user_id)
         stream_context = StreamContext(
             stream_result=stream_result.send if stream_result.enabled else None,
             progress_callback=stream_result.set_progress if stream_result.enabled else None,
-            nc=nc,
-            user_id=task.get("userId"),
+            nc=user_nc,
         )
 
         time_start = time.perf_counter()

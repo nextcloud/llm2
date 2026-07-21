@@ -84,8 +84,8 @@ def extract_reasoning_content(value: Any) -> str:
 
 @dataclass
 class StreamContext:
-    nc: AsyncNextcloudApp
-    user_id: str | None = None
+    # Per-task client impersonating the task user for file downloads
+    nc: AsyncNextcloudApp | None = None
     stream_result: Callable[[dict[str, Any]], Awaitable[None] | None] | None = None
     progress_callback: Callable[[float], Awaitable[Any] | Any] | None = None
     stream_interval_seconds: float = 0.75
