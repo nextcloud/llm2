@@ -23,10 +23,12 @@ from task_files import build_attachment_content_parts
 
 logger = logging.getLogger(__name__)
 
+MAX_ATTACHMENTS_COUNT = 10
 
-async def resolve_message_content(nc: AsyncNextcloudApp, content: Any) -> str | list[dict[str, Any]]:
+async def resolve_message_content(nc: AsyncNextcloudApp, content: Any, modalities: list[str]) -> str | list[dict[str, Any]]:
     """Resolve history content: strings pass through; file parts are fetched."""
-
+    if not isinstance(content, list):
+        raise ValueError("Invalid message history content")
     resolved: list[dict[str, Any]] = []
     for item in content:
         if not isinstance(item, dict) or "type" not in item:
@@ -38,7 +40,7 @@ async def resolve_message_content(nc: AsyncNextcloudApp, content: Any) -> str | 
         if file_id is None:
             raise ValueError("Invalid message history content")
         try:
-            resolved.extend(await build_attachment_content_parts(nc, file_id))
+            resolved.extend(await build_attachment_content_parts(nc, file_id, modalities))
         except Exception as e:
             logger.warning("Could not build file content from id: %s. Error: %s", file_id, e)
     return resolved
@@ -46,15 +48,13 @@ async def resolve_message_content(nc: AsyncNextcloudApp, content: Any) -> str | 
 
 async def build_input_attachment_parts(
     nc: AsyncNextcloudApp,
-    attachments: list[Any],
+    attachments: list[int],
+    modalities: list[str],
 ) -> list[dict[str, Any]]:
     """Fetch current-turn input_attachments and convert to content parts."""
     parts: list[dict[str, Any]] = []
     for attachment in attachments:
-        file_id = attachment
-        if isinstance(attachment, dict):
-            file_id = attachment.get("id", attachment.get("fileId", attachment.get("file_id")))
-        parts.extend(await build_attachment_content_parts(nc, file_id))
+        parts.extend(await build_attachment_content_parts(nc, attachment, modalities))
     return parts
 
 
@@ -63,8 +63,9 @@ class MultimodalChatWithToolsProcessor:
 
     model: BaseChatModel
 
-    def __init__(self, runner: BaseChatModel):
+    def __init__(self, runner: BaseChatModel, modalities: list[str]):
         self.model = runner
+        self.modalities = modalities
 
     async def _process_single_input(
             self,
@@ -101,7 +102,7 @@ The following is a JSON specification of the tools you can call and their parame
 
         for raw_message in input_data['history']:
             message = json.loads(raw_message)
-            content = await resolve_message_content(context.nc, message['content'])
+            content = await resolve_message_content(context.nc, message['content'], self.modalities)
             if message['role'] == 'assistant':
                 if content == '' and message.get("tool_calls"):
                     messages.append(AIMessage(content=generate_tool_call(message['tool_calls'][0])))
@@ -111,10 +112,10 @@ The following is a JSON specification of the tools you can call and their parame
                 messages.append(HumanMessage(content=content))
 
         attachments = input_data['input_attachments']
-        if len(attachments) > 10:
-            raise ValueError("Too many attachments")
+        if len(attachments) > MAX_ATTACHMENTS_COUNT:
+            raise ValueError(f"Too many attachments (max {MAX_ATTACHMENTS_COUNT})")
 
-        attachment_parts = await build_input_attachment_parts(context.nc, attachments)
+        attachment_parts = await build_input_attachment_parts(context.nc, attachments, self.modalities)
 
         if input_data['input'] != '':
             content: list[dict[str, Any]] | str
@@ -139,8 +140,8 @@ The following is a JSON specification of the tools you can call and their parame
     """.format(tool_call_result=tool_message['content'], tool_name=tool_message['name'])
                     messages.append(HumanMessage(content=message_content))
             except json.JSONDecodeError as e:
-                print('Failed to parse tool message')
-                print(e)
+                logger.error('Failed to parse tool message')
+                logger.error(e)
         elif attachment_parts:
             messages.append(HumanMessage(content=attachment_parts))
         else:

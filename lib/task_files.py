@@ -38,6 +38,14 @@ VALID_TEXT_MIME_TYPES = frozenset({
     "application/csv",
 })
 
+SUPPORTED_INPUT_AUDIO_FORMATS = {
+    "audio/mp3": "mp3",
+    "audio/mpeg": "mp3",
+    "audio/wav": "wav",
+    "audio/x-wav": "wav",
+}
+
+
 
 def bytes_to_data_url(data: bytes, mime: str) -> str:
     content_type = mime.split(";")[0].strip() or "application/octet-stream"
@@ -75,16 +83,25 @@ async def fetch_file_bytes(nc: AsyncNextcloudApp, file_id: int | str) -> dict[st
 async def build_attachment_content_parts(
     nc: AsyncNextcloudApp,
     file_id: int | str,
+    modalities: list[str],
 ) -> list[dict[str, Any]]:
     """Fetch a file and turn it into OpenAI-style message content parts (image + text only)."""
     fetched = await fetch_file_bytes(nc, file_id)
     mime = fetched["mime"]
-    if mime.startswith("image/"):
+    if mime.startswith("image/") and "vision" in modalities:
         return [{
             "type": "image_url",
             "image_url": {"url": fetched["data_url"]},
         }]
-    if is_text_mime(mime):
+    elif mime.startswith("audio/") and "audio" in modalities:
+        format = SUPPORTED_INPUT_AUDIO_FORMATS.get(mime)
+        if format is None:
+            raise ValueError(f"Unsupported audio format: {mime}")
+        return [{
+            "type": "input_audio",
+            "input_audio": {"data": base64.b64encode(fetched["data"]).decode("ascii"), "format": format},
+        }]
+    elif is_text_mime(mime):
         try:
             text_body = fetched["data"].decode("utf-8")
         except UnicodeDecodeError as e:

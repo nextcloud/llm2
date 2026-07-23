@@ -71,10 +71,6 @@ def resolve_model_file(name: str) -> str:
     raise FileNotFoundError(f"Model file not found: {name}")
 
 
-def model_supports_vision(file_name: str) -> bool:
-    return bool(get_model_config(file_name)["loader_config"].get("mmproj_path"))
-
-
 def _is_language_model_gguf(file_name: str) -> bool:
     """Skip multimodal projector GGUFs when discovering models."""
     return file_name.endswith(".gguf") and "mmproj" not in file_name.lower()
@@ -247,7 +243,9 @@ def generate_task_processors(task_processors = {}):
 
 def generate_task_processors_for_model(file_name, task_processors):
     model_name = file_name.split('.gguf')[0]
-    n_ctx = get_model_config(file_name)["loader_config"]["n_ctx"]
+    config = get_model_config(file_name)
+    n_ctx = config["loader_config"]["n_ctx"]
+    modalities = config.get("modalities", [])
 
     task_processors[model_name + ":core:text2text:summary"] = lambda: SummarizeProcessor(generate_chat_model(file_name), n_ctx)
     task_processors[model_name + ":core:text2text:headline"] = lambda: HeadlineProcessor(generate_chat_model(file_name))
@@ -261,7 +259,7 @@ def generate_task_processors_for_model(file_name, task_processors):
     task_processors[model_name + ":core:text2text:proofread"] = lambda: ProofreadProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:changetone"] = lambda: ChangeToneProcessor(generate_chat_model(file_name))
     task_processors[model_name + ":core:text2text:chatwithtools"] = lambda: ChatWithToolsProcessor(generate_chat_model(file_name))
+    task_processors[model_name + ":core:text2text:multimodal-chatwithtools"] = lambda: MultimodalChatWithToolsProcessor(generate_chat_model(file_name), modalities)
     task_processors[model_name + ":core:text2text:reformatparagraphs"] = lambda: ReformatParagraphsProcessor(generate_chat_model(file_name))
-    if model_supports_vision(file_name):
+    if "vision" in modalities:
         task_processors[model_name + ":core:analyze-images"] = lambda: AnalyzeImagesProcessor(generate_chat_model(file_name))
-        task_processors[model_name + ":core:text2text:multimodal-chatwithtools"] = lambda: MultimodalChatWithToolsProcessor(generate_chat_model(file_name))

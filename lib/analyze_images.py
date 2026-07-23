@@ -8,6 +8,7 @@ from langchain_core.runnables import Runnable
 
 from task_files import fetch_file_bytes
 from streaming import StreamContext, run_runnable_with_streaming
+from multimodal_chatwithtools import MAX_ATTACHMENTS_COUNT
 
 
 class AnalyzeImagesProcessor:
@@ -34,8 +35,8 @@ class AnalyzeImagesProcessor:
         images = inputs.get("images") or []
         if not images:
             raise ValueError("core:analyze-images requires at least one image")
-        if len(images) > 10:
-            raise ValueError("Too many images")
+        if len(images) > MAX_ATTACHMENTS_COUNT:
+            raise ValueError(f"Too many images (max {MAX_ATTACHMENTS_COUNT})")
         images = [await fetch_file_bytes(context.nc, image) for image in images]
 
         content: list[dict[str, Any]] = [{"type": "text", "text": question}]
