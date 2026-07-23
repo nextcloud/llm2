@@ -66,7 +66,9 @@ async def log(nc: AsyncNextcloudApp, level, content):
 
 models_to_fetch = {
     "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B_q4_0-it.gguf": {"save_path": os.path.join(persistent_storage(), "gemma-4-E4B_q4_0-it.gguf")},
+    "https://huggingface.co/google/gemma-4-E4B-it-qat-q4_0-gguf/resolve/main/gemma-4-E4B-it-mmproj.gguf": {"save_path": os.path.join(persistent_storage(), "gemma-4-E4B-it-mmproj.gguf")},
     "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/3885219b6810b007914f3a7950a8d1b469d598a5/Qwen3.5-9B-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Qwen3.5-9B-Q4_K_M.gguf")},
+    "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/3885219b6810b007914f3a7950a8d1b469d598a5/mmproj-F16.gguf": {"save_path": os.path.join(persistent_storage(), "Qwen3.5-9B-mmproj-F16.gguf")},
     "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/4f0c246f125fc7594238ebe7beb1435a8335f519/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf")},
     "https://huggingface.co/unsloth/Olmo-3-7B-Instruct-GGUF/resolve/86844f8ff856ba9cc8a22c7b9edd7cf95129a580/Olmo-3-7B-Instruct-Q4_K_M.gguf": {"save_path": os.path.join(persistent_storage(), "Olmo-3-7B-Instruct-Q4_K_M.gguf")},
 }
@@ -153,9 +155,17 @@ async def handle_task(task: dict, provider: dict, nc: AsyncNextcloudApp, task_pr
         processor = await loop.run_in_executor(None, task_processor_loader)
 
         stream_result = NextcloudTaskStreamResult(nc, task["id"], bool(task.get("preferStreaming")))
+        # Per-task client for user-scoped file access so concurrent set_user
+        # calls cannot race on the shared background-loop nc.
+        user_id = task.get("userId")
+        user_nc = None
+        if user_id:
+            user_nc = AsyncNextcloudApp()
+            await user_nc.set_user(user_id)
         stream_context = StreamContext(
             stream_result=stream_result.send if stream_result.enabled else None,
             progress_callback=stream_result.set_progress if stream_result.enabled else None,
+            nc=user_nc,
         )
 
         time_start = time.perf_counter()
