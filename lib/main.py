@@ -373,7 +373,7 @@ async def enabled_handler(enabled: bool, nc: AsyncNextcloudApp) -> str:
                     optional_input_defaults=get_optional_input_defaults(task),
                     optional_output_shape=[
                         ShapeDescriptor(name="reasoning", description="Reasoning trace produced by the model, if any", shape_type=ShapeType.TEXT)
-                    ] if task != "core:text2text:summary" else [],
+                    ] if task != "core:text2text:summary" and task != "core:image2text:ocr" else [],
                 )
                 await nc.providers.task_processing.register(provider)
                 await log(nc, LogLvl.INFO, f"Registered {task_processor_name}")
