@@ -214,6 +214,51 @@ jobs:
           [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
           [ $STREAMING_UPDATES -gt 0 ]
 
+      # core:image2text:ocr exists since Nextcloud 33
+      - name: Run multimodal OCR task
+        if: contains(fromJSON('["master", "stable34", "stable33"]'), matrix.server-versions)
+        env:
+          CREDS: "admin:password"
+          EXPECTED_TEXT: "Nextcloud Image"
+        run: |
+          set -x
+          IMAGE_PATH="${{ env.APP_NAME }}/tests/multimodal-ocr-text.png"
+          REMOTE_PATH="multimodal-ocr-text.png"
+
+          curl -u "$CREDS" -T "$IMAGE_PATH" "http://localhost:8080/remote.php/dav/files/admin/$REMOTE_PATH"
+
+          FILE_ID=$(curl -s -u "$CREDS" -X PROPFIND \
+            -H "Depth: 0" \
+            -H "Content-Type: application/xml" \
+            --data '<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><oc:fileid/></d:prop></d:propfind>' \
+            "http://localhost:8080/remote.php/dav/files/admin/$REMOTE_PATH" \
+            | tr '\n' ' ' \
+            | grep -oE '<oc:fileid>[0-9]+</oc:fileid>' \
+            | head -1 \
+            | grep -oE '[0-9]+')
+          echo "Uploaded image file id: $FILE_ID"
+          [ -n "$FILE_ID" ]
+
+          TASK=$(curl -X POST -u "$CREDS" -H "oCS-APIRequest: true" -H "Content-type: application/json" \
+            "http://localhost:8080/ocs/v2.php/taskprocessing/schedule?format=json" \
+            --data-raw "{\"input\": {\"input\": [$FILE_ID]}, \"type\": \"core:image2text:ocr\", \"appId\": \"test\", \"customId\": \"\"}")
+          echo $TASK
+          TASK_ID=$(echo $TASK | jq '.ocs.data.task.id')
+          NEXT_WAIT_TIME=0
+          TASK_STATUS='"STATUS_SCHEDULED"'
+          until [ $NEXT_WAIT_TIME -eq 35 ] || [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ] || [ "$TASK_STATUS" == '"STATUS_FAILED"' ]; do
+            TASK=$(curl -u "$CREDS" -H "oCS-APIRequest: true" "http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json")
+            echo $TASK
+            TASK_STATUS=$(echo $TASK | jq '.ocs.data.task.status')
+            echo $TASK_STATUS
+            sleep $(( NEXT_WAIT_TIME++ ))
+          done
+          curl -u "$CREDS" -H "oCS-APIRequest: true" "http://localhost:8080/ocs/v2.php/taskprocessing/task/$TASK_ID?format=json"
+          [ "$TASK_STATUS" == '"STATUS_SUCCESSFUL"' ]
+          TASK_OUTPUT=$(echo $TASK | jq -r '.ocs.data.task.output.output | join("\n")')
+          echo "Model output: $TASK_OUTPUT"
+          echo "$TASK_OUTPUT" | grep -qi "$EXPECTED_TEXT"
+
       - name: Show logs
         if: always()
         run: |

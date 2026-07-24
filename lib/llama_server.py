@@ -37,6 +37,8 @@ SERVER_KEYS = (
     "api_keys", "api_prefix",
     # Misc
     "model_alias", "verbosity",
+    # Multimodal (scalars only; mmproj path is set separately)
+    "image_min_tokens", "image_max_tokens",
 )
 
 
@@ -44,6 +46,8 @@ def main() -> None:
     cfg = json.loads(sys.argv[1])
     p = xlc.CommonParams()
     p.model.path = cfg["model_path"]
+    if cfg.get("mmproj_path"):
+        p.mmproj.path = cfg["mmproj_path"]
     for k in SERVER_KEYS:
         if k in cfg:
             setattr(p, k, cfg[k])
