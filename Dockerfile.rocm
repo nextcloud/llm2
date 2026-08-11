@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Nextcloud GmbH and Nextcloud contributors
 # SPDX-License-Identifier: AGPL-3.0-or-later
-FROM docker.io/rocm/dev-ubuntu-22.04:6.4.1
+FROM docker.io/rocm/dev-ubuntu-24.04:6.4.3
 
 ENV DEBIAN_FRONTEND=noninteractive
 
