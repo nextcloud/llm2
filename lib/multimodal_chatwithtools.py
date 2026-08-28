@@ -27,6 +27,8 @@ MAX_ATTACHMENTS_COUNT = 10
 
 async def resolve_message_content(nc: AsyncNextcloudApp, content: Any, modalities: list[str]) -> str | list[dict[str, Any]]:
     """Resolve history content: strings pass through; file parts are fetched."""
+    if isinstance(content, str):
+        return content
     if not isinstance(content, list):
         raise ValueError("Invalid message history content")
     resolved: list[dict[str, Any]] = []
