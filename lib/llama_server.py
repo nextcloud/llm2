@@ -21,7 +21,6 @@ SERVER_KEYS = (
     "n_gpu_layers", "main_gpu", "split_mode", "tensor_split",
     "no_kv_offload", "no_op_offload", "flash_attn_type",
     # Memory
-    "use_mmap", "use_mlock",
     "cache_type_k", "cache_type_v",
     "cache_prompt", "cache_idle_slots", "cache_ram_mib",
     # RoPE / YaRN
@@ -32,7 +31,7 @@ SERVER_KEYS = (
     "reasoning_format", "enable_reasoning",
     "use_jinja", "chat_template", "enable_chat_template",
     # Server
-    "hostname", "port", "n_threads_http",
+    "hostnames", "port", "n_threads_http",
     "timeout_read", "timeout_write",
     "api_keys", "api_prefix",
     # Misc
@@ -49,8 +48,12 @@ def main() -> None:
     if cfg.get("mmproj_path"):
         p.mmproj.path = cfg["mmproj_path"]
     for k in SERVER_KEYS:
-        if k in cfg:
-            setattr(p, k, cfg[k])
+        if k not in cfg:
+            continue
+        if not hasattr(p, k):
+            print(f"llama_server: ignoring server key '{k}' (not supported by this xllamacpp)", file=sys.stderr)
+            continue
+        setattr(p, k, cfg[k])
 
     server = xlc.Server(p)  # noqa: F841 — held to keep the C++ server thread alive
     while True:
