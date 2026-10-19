@@ -150,7 +150,7 @@ def generate_chat_model(file_name: str) -> ChatOpenAI:
 
     server_cfg: dict = {
         "model_path": path,
-        "hostname": "127.0.0.1",
+        "hostnames": ["127.0.0.1"],
         "port": port,
         "n_gpu_layers": n_gpu_layers,
         "n_batch": loader_config.get("n_batch", 512),
