@@ -9,21 +9,36 @@ RUN apt-get update --fix-missing
 RUN apt install -y pipx build-essential git vim curl
 RUN pipx install poetry
 
-# Download and install FRP client into /usr/local/bin.
+# Download and install FRP client with checksum verification
+# FRP version and checksums - update these when upgrading
+ARG FRP_VERSION=0.71.1
+ARG FRP_AMD64_SHA256=1d9875210972a5d1a62b2dc4c48df45ab0af05d3ca1b5e494a014428259df803
+ARG FRP_ARM64_SHA256=8edf590b0c396fa42f9c147121a76af83cfc2002b08f5aef0ea1008c43482019
+
 RUN set -ex; \
     ARCH=$(uname -m); \
     if [ "$ARCH" = "aarch64" ]; then \
-      FRP_URL="https://raw.githubusercontent.com/nextcloud/HaRP/main/exapps_dev/frp_0.61.1_linux_arm64.tar.gz"; \
+        FRP_ARCH="arm64"; \
+        FRP_SHA256="${FRP_ARM64_SHA256}"; \
     else \
-      FRP_URL="https://raw.githubusercontent.com/nextcloud/HaRP/main/exapps_dev/frp_0.61.1_linux_amd64.tar.gz"; \
+        FRP_ARCH="amd64"; \
+        FRP_SHA256="${FRP_AMD64_SHA256}"; \
     fi; \
-    echo "Downloading FRP client from $FRP_URL"; \
-    curl -L "$FRP_URL" -o /tmp/frp.tar.gz; \
+    FRP_URL="https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_${FRP_ARCH}.tar.gz"; \
+    echo "Downloading FRP v${FRP_VERSION} for ${FRP_ARCH}..."; \
+    curl -fsSL "${FRP_URL}" -o /tmp/frp.tar.gz; \
+    ACTUAL_SHA256=$(sha256sum /tmp/frp.tar.gz | cut -d' ' -f1); \
+    if [ "$ACTUAL_SHA256" != "$FRP_SHA256" ]; then \
+        echo "Checksum verification failed for FRP v${FRP_VERSION} (${FRP_ARCH})"; \
+        echo "Expected: ${FRP_SHA256}"; \
+        echo "Got:      ${ACTUAL_SHA256}"; \
+        exit 1; \
+    fi; \
     tar -C /tmp -xzf /tmp/frp.tar.gz; \
-    mv /tmp/frp_0.61.1_linux_* /tmp/frp; \
-    cp /tmp/frp/frpc /usr/local/bin/frpc; \
+    cp /tmp/frp_${FRP_VERSION}_linux_${FRP_ARCH}/frpc /usr/local/bin/frpc; \
     chmod +x /usr/local/bin/frpc; \
-    rm -rf /tmp/frp /tmp/frp.tar.gz
+    rm -rf /tmp/frp_${FRP_VERSION}_linux_${FRP_ARCH} /tmp/frp.tar.gz; \
+    echo "FRP client installed successfully"
 
 ENV DEBIAN_FRONTEND=dialog
 ENV PATH="/root/.local/bin:${PATH}"
