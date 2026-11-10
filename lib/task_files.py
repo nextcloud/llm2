@@ -80,36 +80,50 @@ async def fetch_file_bytes(nc: AsyncNextcloudApp, file_id: int | str) -> dict[st
     }
 
 
+def file_reference_text(name: str, file_id: int) -> str:
+    return f'Attached file: "{name}" (file ID: {file_id})'
+
+
 async def build_attachment_content_parts(
     nc: AsyncNextcloudApp,
     file_id: int | str,
     modalities: list[str],
 ) -> list[dict[str, Any]]:
-    """Fetch a file and turn it into OpenAI-style message content parts (image + text only)."""
+    """Fetch a file and turn it into OpenAI-style message content parts.
+
+    Every file is labelled with its name and file ID so the model can pass the ID to tools.
+    Files whose content cannot be given to the model directly only get the label.
+    """
     fetched = await fetch_file_bytes(nc, file_id)
     mime = fetched["mime"]
+    reference = file_reference_text(fetched["name"], fetched["file_id"])
     if mime.startswith("image/") and "vision" in modalities:
-        return [{
-            "type": "image_url",
-            "image_url": {"url": fetched["data_url"]},
-        }]
-    elif mime.startswith("audio/") and "audio" in modalities:
-        format = SUPPORTED_INPUT_AUDIO_FORMATS.get(mime)
-        if format is None:
-            raise ValueError(f"Unsupported audio format: {mime}")
-        return [{
-            "type": "input_audio",
-            "input_audio": {"data": base64.b64encode(fetched["data"]).decode("ascii"), "format": format},
-        }]
+        return [
+            {"type": "text", "text": reference},
+            {"type": "image_url", "image_url": {"url": fetched["data_url"]}},
+        ]
+    elif mime.startswith("audio/") and "audio" in modalities and mime in SUPPORTED_INPUT_AUDIO_FORMATS:
+        return [
+            {"type": "text", "text": reference},
+            {
+                "type": "input_audio",
+                "input_audio": {
+                    "data": base64.b64encode(fetched["data"]).decode("ascii"),
+                    "format": SUPPORTED_INPUT_AUDIO_FORMATS[mime],
+                },
+            },
+        ]
     elif is_text_mime(mime):
         try:
             text_body = fetched["data"].decode("utf-8")
-        except UnicodeDecodeError as e:
-            raise ValueError(
-                f"Invalid input file type: {mime} (not valid UTF-8 text)"
-            ) from e
-        return [{
-            "type": "text",
-            "text": f"Filename:{fetched['name']}\nContent:\n{text_body}",
-        }]
-    raise ValueError(f"Invalid input file type: {mime}")
+        except UnicodeDecodeError:
+            pass
+        else:
+            return [{
+                "type": "text",
+                "text": f"Filename:{fetched['name']}\nFile ID:{fetched['file_id']}\nContent:\n{text_body}",
+            }]
+    return [{
+        "type": "text",
+        "text": f"{reference}\n(content of type {mime} not available directly; use tools with the file ID)",
+    }]
