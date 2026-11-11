@@ -52,7 +52,7 @@ COPY poetry.lock .
 COPY healthcheck.sh .
 COPY --chmod=775 start.sh /
 
-RUN poetry install
+RUN poetry install --only main
 RUN ln -s /usr/local/cuda/compat/libcuda.so.1 /usr/lib/x86_64-linux-gnu/
 
 ADD lib /app/lib

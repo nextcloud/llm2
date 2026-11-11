@@ -51,7 +51,7 @@ COPY poetry.lock .
 COPY healthcheck.sh .
 COPY --chmod=775 start.sh /
 
-RUN poetry install
+RUN poetry install --only main
 # pyproject.toml pins the cu128 wheel; swap to the matching ROCm wheel.
 RUN poetry run pip install --force-reinstall --no-deps \
     --index-url https://xorbitsai.github.io/xllamacpp/whl/rocm-6.4.1 xllamacpp

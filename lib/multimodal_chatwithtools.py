@@ -15,6 +15,7 @@ from nc_py_api import AsyncNextcloudApp
 
 from chatwithtools import (
     build_streaming_payload,
+    build_tool_result_messages,
     generate_tool_call,
     try_parse_tool_calls,
 )
@@ -128,22 +129,7 @@ The following is a JSON specification of the tools you can call and their parame
                 content = input_data['input']
             messages.append(HumanMessage(content=content))
         elif 'tool_message' in input_data and input_data['tool_message'] != '':
-            try:
-                tool_messages = json.loads(input_data['tool_message'])
-                for tool_message in tool_messages:
-                    message_content = """
-    The result of your tool call for the tool "{tool_name}" is the following:
-    
-    ===
-    {tool_call_result}
-    ===
-    
-    You can now formulate this in natural language for the user. Do not mention that you called a tool.
-    """.format(tool_call_result=tool_message['content'], tool_name=tool_message['name'])
-                    messages.append(HumanMessage(content=message_content))
-            except json.JSONDecodeError as e:
-                logger.error('Failed to parse tool message')
-                logger.error(e)
+            messages.extend(build_tool_result_messages(input_data['tool_message']))
         elif attachment_parts:
             messages.append(HumanMessage(content=attachment_parts))
         else:
