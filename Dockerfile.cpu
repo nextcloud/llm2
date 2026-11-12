@@ -52,7 +52,7 @@ COPY poetry.lock .
 COPY healthcheck.sh .
 COPY --chmod=775 start.sh /
 
-RUN poetry install
+RUN poetry install --only main
 # pyproject.toml pins the cu128 wheel for GPU production; swap to the PyPI CPU build
 # so this image runs without libcuda.so.1 / CUDA runtime libraries.
 RUN poetry run pip install --force-reinstall --no-deps xllamacpp
