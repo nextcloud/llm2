@@ -130,7 +130,7 @@ jobs:
           sudo apt install pipx
           pipx install poetry
           poetry install
-          # pyproject.toml pins xllamacpp to the cu128 wheel, which needs libcuda.so.1 at import
+          # pyproject.toml pins xllamacpp to the cu132 wheel, which needs libcuda.so.1 at import
           # time. The CI runner has no NVIDIA driver, so we swap in the PyPI CPU build for tests.
           poetry run pip install --force-reinstall --no-deps xllamacpp
 
