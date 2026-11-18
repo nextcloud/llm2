@@ -2541,12 +2541,12 @@ optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "xllamacpp-2026.11.12361-cp310-abi3-linux_aarch64.whl", hash = "sha256:f30e7ed3e086f1788cacf01c0f113f9c2de4ed738a25fb4f3d1c879d2334b6a8"},
-    {file = "xllamacpp-2026.11.12361-cp310-abi3-linux_x86_64.whl", hash = "sha256:89f80238cfb03d82de5947b692b0e9b2fe3a8c6eb079a866891419e07b30fb2d"},
-    {file = "xllamacpp-2026.11.12361-cp310-abi3-win_amd64.whl", hash = "sha256:3f47f89dccb10c2e14c66f2202ee1ab0869fc4d3baaa6cad4b9c9e8b8fd1eb06"},
-    {file = "xllamacpp-2026.11.12361-cp314-cp314t-linux_aarch64.whl", hash = "sha256:48e8071354128b3e37e6691e53c91f024901b298ec7b652e2544a287a084009a"},
-    {file = "xllamacpp-2026.11.12361-cp314-cp314t-linux_x86_64.whl", hash = "sha256:f66b66772db71d752e78451809fd4cd2908fb4d2583718071f3b11f34bb86006"},
-    {file = "xllamacpp-2026.11.12361-cp314-cp314t-win_amd64.whl", hash = "sha256:df2f5e7bb7300e0dac4ba1044ecd0a1c053fbc176102dd5e596e15c975baa8e2"},
+    {file = "xllamacpp-2026.11.12361-cp310-abi3-linux_aarch64.whl", hash = "sha256:6b5844d21ac8816fe5b0b8621f9ac4fc585cc3e7f9bd62224c6edac20354d696"},
+    {file = "xllamacpp-2026.11.12361-cp310-abi3-linux_x86_64.whl", hash = "sha256:1025716c6b4d2b7498417f041b88d06486218a2188c834ef35ac5055e8b92da2"},
+    {file = "xllamacpp-2026.11.12361-cp310-abi3-win_amd64.whl", hash = "sha256:2de225ad47041f3734871de1c2e53650cd4533936722757d47d08894beea1217"},
+    {file = "xllamacpp-2026.11.12361-cp314-cp314t-linux_aarch64.whl", hash = "sha256:1e6c83b7b00b9d1a7e8d8c636d7b882a695b5b93b9867e7a986a43316affa55f"},
+    {file = "xllamacpp-2026.11.12361-cp314-cp314t-linux_x86_64.whl", hash = "sha256:5f875d46dfa9b22355da8a18c7a947c8c5d8f70b800d8daef0f93840b7d56b91"},
+    {file = "xllamacpp-2026.11.12361-cp314-cp314t-win_amd64.whl", hash = "sha256:4df27c42ee6a94469c99c71572292ecc84a9fd1a51cbc96b57c8735f9d9e939a"},
 ]
 
 [package.extras]
@@ -2555,8 +2555,8 @@ test = ["gguf", "pytest", "pytest-cov"]
 
 [package.source]
 type = "legacy"
-url = "https://xorbitsai.github.io/xllamacpp/whl/cu128"
-reference = "xllamacpp-cu128"
+url = "https://xorbitsai.github.io/xllamacpp/whl/cu132"
+reference = "xllamacpp-cu132"
 
 [[package]]
 name = "xmltodict"
@@ -2922,4 +2922,4 @@ cffi = ["cffi (>=1.17,<2.0) ; platform_python_implementation != \"PyPy\" and pyt
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "1386a30c80748709aa9449b188c7e9837bf90ec08144158657693b58719dd666"
+content-hash = "790fb738c9301d238a443c87eeeaf9051fc94b803adc3379b2272afc9e91c73d"
