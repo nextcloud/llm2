@@ -28,7 +28,7 @@ jobs:
       matrix:
         php-versions: [ '8.3' ]
         databases: [ 'sqlite' ]
-        server-versions: [ 'master', 'stable34', 'stable33', 'stable32', 'stable31', 'stable30' ]
+        server-versions: [ 'master', 'stable35', 'stable34', 'stable33', 'stable32', 'stable31', 'stable30' ]
 
     name: Integration test on ☁️${{ matrix.server-versions }} 🐘${{ matrix.php-versions }}
 
@@ -216,7 +216,7 @@ jobs:
 
       # core:image2text:ocr exists since Nextcloud 33
       - name: Run multimodal OCR task
-        if: contains(fromJSON('["master", "stable34", "stable33"]'), matrix.server-versions)
+        if: contains(fromJSON('["master", "stable35", "stable34", "stable33"]'), matrix.server-versions)
         env:
           CREDS: "admin:password"
           EXPECTED_TEXT: "Nextcloud Image"
