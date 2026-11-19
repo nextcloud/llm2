@@ -4,8 +4,8 @@
 """
 
 from typing import Any
-from langchain.prompts import PromptTemplate
-from langchain.schema.prompt_template import BasePromptTemplate
+from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import BasePromptTemplate
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import Runnable
 
