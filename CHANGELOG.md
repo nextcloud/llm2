@@ -9,6 +9,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.9.0] - 2026-11-19
+
+### Added
+
+- Multimodal input support (images and audio) for compatible models
+- Support for analyze images, multimodal chat with tools, and OCR task types
+- Expose file IDs of task input files to the LLM
+
+### Changed
+
+- Bump minimum Python version to 3.11
+- Bump Docker base images to Ubuntu 24.04
+- Install xllamacpp CUDA 13 wheels
+- Upgrade LangChain to 1.x
+- Update dependencies
+
+### Fixed
+
+- Harden tool call handling in chat with tools
+- Pass through string history content in multimodal chat with tools
+- Adapt llama-server to current xllamacpp binding
+
 ## [2.8.0] - 2026-07-15
 
 ### Added
